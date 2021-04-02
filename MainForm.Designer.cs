@@ -30,6 +30,10 @@ namespace StartupOrganizer
         private void InitializeComponent()
         {
             this.listViewStartupItems = new System.Windows.Forms.ListView();
+            this.columnHeaderName = new System.Windows.Forms.ColumnHeader();
+            this.columnHeaderPublisher = new System.Windows.Forms.ColumnHeader();
+            this.columnHeaderExecutable = new System.Windows.Forms.ColumnHeader();
+            this.columnHeaderParam = new System.Windows.Forms.ColumnHeader();
             this.btnSave = new System.Windows.Forms.Button();
             this.btnBackup = new System.Windows.Forms.Button();
             this.btnRestore = new System.Windows.Forms.Button();
@@ -37,12 +41,9 @@ namespace StartupOrganizer
             this.btnLoad = new System.Windows.Forms.Button();
             this.btnAdd = new System.Windows.Forms.Button();
             this.btnDelete = new System.Windows.Forms.Button();
-            this.columnHeaderName = new System.Windows.Forms.ColumnHeader();
-            this.columnHeaderPublisher = new System.Windows.Forms.ColumnHeader();
-            this.columnHeaderExecutable = new System.Windows.Forms.ColumnHeader();
-            this.columnHeaderParam = new System.Windows.Forms.ColumnHeader();
             this.btnBrowse = new System.Windows.Forms.Button();
             this.btnDetails = new System.Windows.Forms.Button();
+            this.columnHeaderID = new System.Windows.Forms.ColumnHeader();
             this.SuspendLayout();
             // 
             // listViewStartupItems
@@ -51,6 +52,7 @@ namespace StartupOrganizer
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.listViewStartupItems.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.columnHeaderID,
             this.columnHeaderName,
             this.columnHeaderPublisher,
             this.columnHeaderExecutable,
@@ -64,70 +66,6 @@ namespace StartupOrganizer
             this.listViewStartupItems.TabIndex = 0;
             this.listViewStartupItems.UseCompatibleStateImageBehavior = false;
             this.listViewStartupItems.View = System.Windows.Forms.View.Details;
-            // 
-            // btnSave
-            // 
-            this.btnSave.Location = new System.Drawing.Point(12, 12);
-            this.btnSave.Name = "btnSave";
-            this.btnSave.Size = new System.Drawing.Size(121, 87);
-            this.btnSave.TabIndex = 1;
-            this.btnSave.Text = "&Save";
-            this.btnSave.UseVisualStyleBackColor = true;
-            // 
-            // btnBackup
-            // 
-            this.btnBackup.Location = new System.Drawing.Point(520, 12);
-            this.btnBackup.Name = "btnBackup";
-            this.btnBackup.Size = new System.Drawing.Size(121, 87);
-            this.btnBackup.TabIndex = 2;
-            this.btnBackup.Text = "&Backup";
-            this.btnBackup.UseVisualStyleBackColor = true;
-            // 
-            // btnRestore
-            // 
-            this.btnRestore.Location = new System.Drawing.Point(647, 12);
-            this.btnRestore.Name = "btnRestore";
-            this.btnRestore.Size = new System.Drawing.Size(121, 87);
-            this.btnRestore.TabIndex = 3;
-            this.btnRestore.Text = "&Restore";
-            this.btnRestore.UseVisualStyleBackColor = true;
-            // 
-            // btnExit
-            // 
-            this.btnExit.Location = new System.Drawing.Point(1019, 12);
-            this.btnExit.Name = "btnExit";
-            this.btnExit.Size = new System.Drawing.Size(121, 87);
-            this.btnExit.TabIndex = 4;
-            this.btnExit.Text = "&Exit";
-            this.btnExit.UseVisualStyleBackColor = true;
-            // 
-            // btnLoad
-            // 
-            this.btnLoad.Location = new System.Drawing.Point(139, 12);
-            this.btnLoad.Name = "btnLoad";
-            this.btnLoad.Size = new System.Drawing.Size(121, 87);
-            this.btnLoad.TabIndex = 5;
-            this.btnLoad.Text = "&Load";
-            this.btnLoad.UseVisualStyleBackColor = true;
-            this.btnLoad.Click += new System.EventHandler(this.Load_Click);
-            // 
-            // btnAdd
-            // 
-            this.btnAdd.Location = new System.Drawing.Point(266, 12);
-            this.btnAdd.Name = "btnAdd";
-            this.btnAdd.Size = new System.Drawing.Size(121, 87);
-            this.btnAdd.TabIndex = 6;
-            this.btnAdd.Text = "&Add";
-            this.btnAdd.UseVisualStyleBackColor = true;
-            // 
-            // btnDelete
-            // 
-            this.btnDelete.Location = new System.Drawing.Point(393, 12);
-            this.btnDelete.Name = "btnDelete";
-            this.btnDelete.Size = new System.Drawing.Size(121, 87);
-            this.btnDelete.TabIndex = 7;
-            this.btnDelete.Text = "&Delete";
-            this.btnDelete.UseVisualStyleBackColor = true;
             // 
             // columnHeaderName
             // 
@@ -149,6 +87,76 @@ namespace StartupOrganizer
             this.columnHeaderParam.Text = "Parameters";
             this.columnHeaderParam.Width = 260;
             // 
+            // btnSave
+            // 
+            this.btnSave.Location = new System.Drawing.Point(12, 12);
+            this.btnSave.Name = "btnSave";
+            this.btnSave.Size = new System.Drawing.Size(121, 87);
+            this.btnSave.TabIndex = 1;
+            this.btnSave.Text = "&Save";
+            this.btnSave.UseVisualStyleBackColor = true;
+            this.btnSave.Click += new System.EventHandler(this.Save_Click);
+            // 
+            // btnBackup
+            // 
+            this.btnBackup.Location = new System.Drawing.Point(520, 12);
+            this.btnBackup.Name = "btnBackup";
+            this.btnBackup.Size = new System.Drawing.Size(121, 87);
+            this.btnBackup.TabIndex = 2;
+            this.btnBackup.Text = "&Backup";
+            this.btnBackup.UseVisualStyleBackColor = true;
+            this.btnBackup.Click += new System.EventHandler(this.Backup_Click);
+            // 
+            // btnRestore
+            // 
+            this.btnRestore.Location = new System.Drawing.Point(647, 12);
+            this.btnRestore.Name = "btnRestore";
+            this.btnRestore.Size = new System.Drawing.Size(121, 87);
+            this.btnRestore.TabIndex = 3;
+            this.btnRestore.Text = "&Restore";
+            this.btnRestore.UseVisualStyleBackColor = true;
+            this.btnRestore.Click += new System.EventHandler(this.Restore_Click);
+            // 
+            // btnExit
+            // 
+            this.btnExit.Location = new System.Drawing.Point(1019, 12);
+            this.btnExit.Name = "btnExit";
+            this.btnExit.Size = new System.Drawing.Size(121, 87);
+            this.btnExit.TabIndex = 4;
+            this.btnExit.Text = "&Exit";
+            this.btnExit.UseVisualStyleBackColor = true;
+            this.btnExit.Click += new System.EventHandler(this.Exit_Click);
+            // 
+            // btnLoad
+            // 
+            this.btnLoad.Location = new System.Drawing.Point(139, 12);
+            this.btnLoad.Name = "btnLoad";
+            this.btnLoad.Size = new System.Drawing.Size(121, 87);
+            this.btnLoad.TabIndex = 5;
+            this.btnLoad.Text = "&Load";
+            this.btnLoad.UseVisualStyleBackColor = true;
+            this.btnLoad.Click += new System.EventHandler(this.Load_Click);
+            // 
+            // btnAdd
+            // 
+            this.btnAdd.Location = new System.Drawing.Point(266, 12);
+            this.btnAdd.Name = "btnAdd";
+            this.btnAdd.Size = new System.Drawing.Size(121, 87);
+            this.btnAdd.TabIndex = 6;
+            this.btnAdd.Text = "&Add";
+            this.btnAdd.UseVisualStyleBackColor = true;
+            this.btnAdd.Click += new System.EventHandler(this.Add_Click);
+            // 
+            // btnDelete
+            // 
+            this.btnDelete.Location = new System.Drawing.Point(393, 12);
+            this.btnDelete.Name = "btnDelete";
+            this.btnDelete.Size = new System.Drawing.Size(121, 87);
+            this.btnDelete.TabIndex = 7;
+            this.btnDelete.Text = "&Delete";
+            this.btnDelete.UseVisualStyleBackColor = true;
+            this.btnDelete.Click += new System.EventHandler(this.Delete_Click);
+            // 
             // btnBrowse
             // 
             this.btnBrowse.Location = new System.Drawing.Point(774, 12);
@@ -157,6 +165,7 @@ namespace StartupOrganizer
             this.btnBrowse.TabIndex = 8;
             this.btnBrowse.Text = "&Browse";
             this.btnBrowse.UseVisualStyleBackColor = true;
+            this.btnBrowse.Click += new System.EventHandler(this.Browse_Click);
             // 
             // btnDetails
             // 
@@ -166,6 +175,11 @@ namespace StartupOrganizer
             this.btnDetails.TabIndex = 9;
             this.btnDetails.Text = "&Details";
             this.btnDetails.UseVisualStyleBackColor = true;
+            this.btnDetails.Click += new System.EventHandler(this.Details_Click);
+            // 
+            // columnHeaderID
+            // 
+            this.columnHeaderID.Width = 0;
             // 
             // MainForm
             // 
@@ -204,6 +218,7 @@ namespace StartupOrganizer
         private System.Windows.Forms.ColumnHeader columnHeaderParam;
         private System.Windows.Forms.Button btnBrowse;
         private System.Windows.Forms.Button btnDetails;
+        private System.Windows.Forms.ColumnHeader columnHeaderID;
     }
 }
 
