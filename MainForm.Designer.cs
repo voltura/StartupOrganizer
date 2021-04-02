@@ -29,6 +29,8 @@ namespace StartupOrganizer
         /// </summary>
         private void InitializeComponent()
         {
+            System.Windows.Forms.ListViewGroup listViewGroup1 = new System.Windows.Forms.ListViewGroup("Current User", System.Windows.Forms.HorizontalAlignment.Left);
+            System.Windows.Forms.ListViewGroup listViewGroup2 = new System.Windows.Forms.ListViewGroup("Local Machine", System.Windows.Forms.HorizontalAlignment.Left);
             this.listViewStartupItems = new System.Windows.Forms.ListView();
             this.columnHeaderName = new System.Windows.Forms.ColumnHeader();
             this.columnHeaderPublisher = new System.Windows.Forms.ColumnHeader();
@@ -43,7 +45,7 @@ namespace StartupOrganizer
             this.btnDelete = new System.Windows.Forms.Button();
             this.btnBrowse = new System.Windows.Forms.Button();
             this.btnDetails = new System.Windows.Forms.Button();
-            this.columnHeaderID = new System.Windows.Forms.ColumnHeader();
+            this.columnHeaderOS = new System.Windows.Forms.ColumnHeader();
             this.SuspendLayout();
             // 
             // listViewStartupItems
@@ -52,13 +54,28 @@ namespace StartupOrganizer
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.listViewStartupItems.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.columnHeaderID,
             this.columnHeaderName,
             this.columnHeaderPublisher,
             this.columnHeaderExecutable,
-            this.columnHeaderParam});
+            this.columnHeaderParam,
+            this.columnHeaderOS});
             this.listViewStartupItems.FullRowSelect = true;
             this.listViewStartupItems.GridLines = true;
+            listViewGroup1.CollapsedState = System.Windows.Forms.ListViewGroupCollapsedState.Expanded;
+            listViewGroup1.Footer = "";
+            listViewGroup1.Header = "Current User";
+            listViewGroup1.Name = "listViewGroupCurrentUser";
+            listViewGroup1.Subtitle = "Runs only for current user";
+            listViewGroup1.TaskLink = "";
+            listViewGroup2.CollapsedState = System.Windows.Forms.ListViewGroupCollapsedState.Expanded;
+            listViewGroup2.Footer = "";
+            listViewGroup2.Header = "Local Machine";
+            listViewGroup2.Name = "listViewGroupLocalMachine";
+            listViewGroup2.Subtitle = "Runs for all users";
+            listViewGroup2.TaskLink = "";
+            this.listViewStartupItems.Groups.AddRange(new System.Windows.Forms.ListViewGroup[] {
+            listViewGroup1,
+            listViewGroup2});
             this.listViewStartupItems.HideSelection = false;
             this.listViewStartupItems.Location = new System.Drawing.Point(12, 105);
             this.listViewStartupItems.Name = "listViewStartupItems";
@@ -99,7 +116,7 @@ namespace StartupOrganizer
             // 
             // btnBackup
             // 
-            this.btnBackup.Location = new System.Drawing.Point(520, 12);
+            this.btnBackup.Location = new System.Drawing.Point(512, 12);
             this.btnBackup.Name = "btnBackup";
             this.btnBackup.Size = new System.Drawing.Size(121, 87);
             this.btnBackup.TabIndex = 2;
@@ -109,7 +126,7 @@ namespace StartupOrganizer
             // 
             // btnRestore
             // 
-            this.btnRestore.Location = new System.Drawing.Point(647, 12);
+            this.btnRestore.Location = new System.Drawing.Point(637, 12);
             this.btnRestore.Name = "btnRestore";
             this.btnRestore.Size = new System.Drawing.Size(121, 87);
             this.btnRestore.TabIndex = 3;
@@ -119,7 +136,7 @@ namespace StartupOrganizer
             // 
             // btnExit
             // 
-            this.btnExit.Location = new System.Drawing.Point(1019, 12);
+            this.btnExit.Location = new System.Drawing.Point(1012, 12);
             this.btnExit.Name = "btnExit";
             this.btnExit.Size = new System.Drawing.Size(121, 87);
             this.btnExit.TabIndex = 4;
@@ -129,7 +146,7 @@ namespace StartupOrganizer
             // 
             // btnLoad
             // 
-            this.btnLoad.Location = new System.Drawing.Point(139, 12);
+            this.btnLoad.Location = new System.Drawing.Point(137, 12);
             this.btnLoad.Name = "btnLoad";
             this.btnLoad.Size = new System.Drawing.Size(121, 87);
             this.btnLoad.TabIndex = 5;
@@ -139,7 +156,7 @@ namespace StartupOrganizer
             // 
             // btnAdd
             // 
-            this.btnAdd.Location = new System.Drawing.Point(266, 12);
+            this.btnAdd.Location = new System.Drawing.Point(262, 12);
             this.btnAdd.Name = "btnAdd";
             this.btnAdd.Size = new System.Drawing.Size(121, 87);
             this.btnAdd.TabIndex = 6;
@@ -149,7 +166,7 @@ namespace StartupOrganizer
             // 
             // btnDelete
             // 
-            this.btnDelete.Location = new System.Drawing.Point(393, 12);
+            this.btnDelete.Location = new System.Drawing.Point(387, 12);
             this.btnDelete.Name = "btnDelete";
             this.btnDelete.Size = new System.Drawing.Size(121, 87);
             this.btnDelete.TabIndex = 7;
@@ -159,7 +176,7 @@ namespace StartupOrganizer
             // 
             // btnBrowse
             // 
-            this.btnBrowse.Location = new System.Drawing.Point(774, 12);
+            this.btnBrowse.Location = new System.Drawing.Point(762, 12);
             this.btnBrowse.Name = "btnBrowse";
             this.btnBrowse.Size = new System.Drawing.Size(121, 87);
             this.btnBrowse.TabIndex = 8;
@@ -169,7 +186,7 @@ namespace StartupOrganizer
             // 
             // btnDetails
             // 
-            this.btnDetails.Location = new System.Drawing.Point(901, 12);
+            this.btnDetails.Location = new System.Drawing.Point(887, 12);
             this.btnDetails.Name = "btnDetails";
             this.btnDetails.Size = new System.Drawing.Size(121, 87);
             this.btnDetails.TabIndex = 9;
@@ -177,9 +194,10 @@ namespace StartupOrganizer
             this.btnDetails.UseVisualStyleBackColor = true;
             this.btnDetails.Click += new System.EventHandler(this.Details_Click);
             // 
-            // columnHeaderID
+            // columnHeaderOS
             // 
-            this.columnHeaderID.Width = 0;
+            this.columnHeaderOS.Text = "OS?";
+            this.columnHeaderOS.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
             // MainForm
             // 
@@ -198,6 +216,7 @@ namespace StartupOrganizer
             this.Controls.Add(this.listViewStartupItems);
             this.Name = "MainForm";
             this.Text = "Startup Organizer";
+            this.Load += new System.EventHandler(this.MainForm_Load);
             this.ResumeLayout(false);
 
         }
@@ -218,7 +237,7 @@ namespace StartupOrganizer
         private System.Windows.Forms.ColumnHeader columnHeaderParam;
         private System.Windows.Forms.Button btnBrowse;
         private System.Windows.Forms.Button btnDetails;
-        private System.Windows.Forms.ColumnHeader columnHeaderID;
+        private System.Windows.Forms.ColumnHeader columnHeaderOS;
     }
 }
 

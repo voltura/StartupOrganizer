@@ -6,6 +6,7 @@ namespace StartupOrganizer
     {
         public int ID { get; set; }
         public string RegistryKey { get; set; }
+        public int GroupIndex { get; set; }
         public string ValueName { get; set; }
         public RegistryValueKind Kind { get; set; }
         public string ValueData { get; set; }
@@ -16,5 +17,6 @@ namespace StartupOrganizer
         public string Parameters { get; set; }
         public string ProductVersion { get; set; }
         public string FileVersion { get; set; }
+        public bool PartOfOS { get; set; }
     }
 }

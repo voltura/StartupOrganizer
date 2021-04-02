@@ -29,6 +29,10 @@ namespace StartupOrganizer
 
         private readonly List<StartupItem> m_StartupItems;
         const string UNKNOWN = "Unknown";
+        const string CURRENT_USER_RUN_REG = @"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
+        const string LOCAL_MACHINE_RUN_REG = @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
+        const string CURRENT_USER_RUN_32_REG = @"HKEY_CURRENT_USER\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run";
+        const string LOCAL_MACHINE_RUN_32_REG = @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run";
 
         #endregion Private variables
 
@@ -44,9 +48,14 @@ namespace StartupOrganizer
 
         #region Events
 
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+            LoadStartupItems();
+        }
+
         private void Load_Click(object sender, EventArgs e)
         {
-            LoadUserStartupItemsFromRegistry();
+            LoadStartupItems();
         }
 
         private void Exit_Click(object sender, EventArgs e)
@@ -119,25 +128,35 @@ namespace StartupOrganizer
             throw new NotImplementedException();
         }
 
-        private void LoadUserStartupItemsFromRegistry()
+        private void LoadStartupItemsFromRegistry(string registrySubKey)
         {
-            using RegistryKey hkcuRun = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run");
-            if (hkcuRun is null) return;
-            m_StartupItems.Clear();
-            string[] runValueNames = hkcuRun.GetValueNames();
+            RegistryKey regKeyRun = registrySubKey.Equals(CURRENT_USER_RUN_REG) ? 
+                Registry.CurrentUser.OpenSubKey(registrySubKey.Replace(@"HKEY_CURRENT_USER\","")) : 
+                Registry.LocalMachine.OpenSubKey(registrySubKey.Replace(@"HKEY_LOCAL_MACHINE\", ""));
+            if (regKeyRun is null) return;
+            string[] runValueNames = regKeyRun.GetValueNames();
 
             for (int i = 0; i < runValueNames.Length; i++)
             {
                 string runValueName = runValueNames[i];
-                RegistryValueKind kind = hkcuRun.GetValueKind(runValueName);
-                object valueDataObject = hkcuRun.GetValue(runValueName, string.Empty);
+                if (string.IsNullOrEmpty(runValueName)) continue;
+                RegistryValueKind kind = regKeyRun.GetValueKind(runValueName);
+                object valueDataObject = regKeyRun.GetValue(runValueName, string.Empty);
                 string runValueData = Convert.ToString(valueDataObject ?? string.Empty);
-                string[] pathAndParams = runValueData.Split('"', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                string[] pathAndParams;
+                if (runValueData.Contains('"'))
+                    pathAndParams = runValueData.Split('"', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                else if (runValueData.Contains('/'))
+                    pathAndParams = new string[] { runValueData.Substring(0, runValueData.IndexOf('/') - 1).Trim(), runValueData[runValueData.IndexOf('/')..].Trim() };
+                else
+                    pathAndParams = new string[] { runValueData.Trim() };
                 string parameters = pathAndParams != null ? (pathAndParams.Length > 1 ? pathAndParams?[1] : string.Empty) : string.Empty;
                 string exeAndPath = pathAndParams != null ? pathAndParams?[0] : string.Empty;
                 FileInfo fi = File.Exists(exeAndPath) ? new(exeAndPath) : null;                
                 StartupItem startupItem = new();
-                startupItem.ID = i;
+                startupItem.ID = m_StartupItems.Count + 1;
+                startupItem.RegistryKey = registrySubKey;
+                startupItem.GroupIndex = registrySubKey.Equals(CURRENT_USER_RUN_REG) || registrySubKey.Equals(CURRENT_USER_RUN_32_REG) ? 0 : 1;
                 startupItem.Folder = fi == null ? string.Empty : fi.Directory.FullName;
                 startupItem.Executable = fi == null ? string.Empty : fi.Name;
                 startupItem.Kind = kind;
@@ -147,7 +166,6 @@ namespace StartupOrganizer
                 FillFileDetails(exeAndPath, ref startupItem);
                 m_StartupItems.Add(startupItem);
             }
-            PopulateListView();
         }
 
         private void PopulateListView()
@@ -156,13 +174,25 @@ namespace StartupOrganizer
             listViewStartupItems.Items.Clear();
             foreach (StartupItem startupItem in m_StartupItems)
             {
-                string[] row = { Convert.ToString(startupItem.ID), startupItem.Name, startupItem.Publisher, startupItem.Executable, startupItem.Parameters };
-                ListViewItem listViewItem = new(row);
+                ListViewItem listViewItem = new()
+                {
+                    Group = listViewStartupItems.Groups[startupItem.GroupIndex],
+                    Tag = Convert.ToString(startupItem.ID),
+                    Text = startupItem.Name
+                };
+                string[] row = { startupItem.Publisher, startupItem.Executable, startupItem.Parameters, startupItem.PartOfOS ? " YES " : " NO " };
+                listViewItem.SubItems.AddRange(row);
                 listViewStartupItems.Items.Add(listViewItem);
             }
             listViewStartupItems.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
             listViewStartupItems.AutoResizeColumns(ColumnHeaderAutoResizeStyle.ColumnContent);
             listViewStartupItems.EndUpdate();
+            int formWidth = 100;
+            foreach(ColumnHeader columnHeader in listViewStartupItems.Columns)
+            {
+                formWidth += columnHeader.Width;
+            }
+            Width = formWidth > this.Width ? formWidth : Width;
         }
 
         private static void FillFileDetails(string fileName, ref StartupItem startupItem)
@@ -183,9 +213,18 @@ namespace StartupOrganizer
             }
             FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(fileName);
             var productName = fileVersionInfo.ProductName;
-            if (!string.IsNullOrEmpty(productName))
+            
+            if (!string.IsNullOrEmpty(productName) && productName == @"Microsoft® Windows® Operating System") 
+            {
+                startupItem.PartOfOS = true;
+            }
+            if (!string.IsNullOrEmpty(productName) && !startupItem.PartOfOS)
             {
                 startupItem.Name = productName;
+            } 
+            else if (!string.IsNullOrEmpty(fileVersionInfo.FileDescription))
+            {
+                startupItem.Name = fileVersionInfo.FileDescription;
             }
             startupItem.ProductVersion = fileVersionInfo.ProductVersion;
             startupItem.FileVersion = fileVersionInfo.FileVersion;
@@ -198,6 +237,21 @@ namespace StartupOrganizer
         private void ShowDetails()
         {
             throw new NotImplementedException();
+        }
+
+        private void CleanLoadedStartupItems()
+        {
+            m_StartupItems.Clear();
+        }
+
+        private void LoadStartupItems()
+        {
+            CleanLoadedStartupItems();
+            LoadStartupItemsFromRegistry(CURRENT_USER_RUN_REG);
+            LoadStartupItemsFromRegistry(CURRENT_USER_RUN_32_REG);
+            LoadStartupItemsFromRegistry(LOCAL_MACHINE_RUN_REG);
+            LoadStartupItemsFromRegistry(LOCAL_MACHINE_RUN_32_REG);
+            PopulateListView();
         }
 
         #endregion Private methods
