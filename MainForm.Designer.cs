@@ -37,6 +37,7 @@ namespace StartupOrganizer
             this.columnHeaderExecutable = new System.Windows.Forms.ColumnHeader();
             this.columnHeaderParam = new System.Windows.Forms.ColumnHeader();
             this.columnHeaderOS = new System.Windows.Forms.ColumnHeader();
+            this.columnHeaderStatus = new System.Windows.Forms.ColumnHeader();
             this.btnSave = new System.Windows.Forms.Button();
             this.btnBackup = new System.Windows.Forms.Button();
             this.btnRestore = new System.Windows.Forms.Button();
@@ -46,7 +47,7 @@ namespace StartupOrganizer
             this.btnDelete = new System.Windows.Forms.Button();
             this.btnBrowse = new System.Windows.Forms.Button();
             this.btnDetails = new System.Windows.Forms.Button();
-            this.columnHeaderStatus = new System.Windows.Forms.ColumnHeader();
+            this.columnHeaderType = new System.Windows.Forms.ColumnHeader();
             this.SuspendLayout();
             // 
             // listViewStartupItems
@@ -60,7 +61,8 @@ namespace StartupOrganizer
             this.columnHeaderExecutable,
             this.columnHeaderParam,
             this.columnHeaderOS,
-            this.columnHeaderStatus});
+            this.columnHeaderStatus,
+            this.columnHeaderType});
             this.listViewStartupItems.FullRowSelect = true;
             this.listViewStartupItems.GridLines = true;
             listViewGroup1.CollapsedState = System.Windows.Forms.ListViewGroupCollapsedState.Expanded;
@@ -110,6 +112,11 @@ namespace StartupOrganizer
             // 
             this.columnHeaderOS.Text = "OS?";
             this.columnHeaderOS.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // columnHeaderStatus
+            // 
+            this.columnHeaderStatus.Text = "Status";
+            this.columnHeaderStatus.Width = 160;
             // 
             // btnSave
             // 
@@ -201,10 +208,10 @@ namespace StartupOrganizer
             this.btnDetails.UseVisualStyleBackColor = true;
             this.btnDetails.Click += new System.EventHandler(this.Details_Click);
             // 
-            // columnHeaderStatus
+            // columnHeaderType
             // 
-            this.columnHeaderStatus.Text = "Status";
-            this.columnHeaderStatus.Width = 160;
+            this.columnHeaderType.Text = "Type";
+            this.columnHeaderType.Width = 120;
             // 
             // MainForm
             // 
@@ -246,6 +253,7 @@ namespace StartupOrganizer
         private System.Windows.Forms.Button btnDetails;
         private System.Windows.Forms.ColumnHeader columnHeaderOS;
         private System.Windows.Forms.ColumnHeader columnHeaderStatus;
+        private System.Windows.Forms.ColumnHeader columnHeaderType;
     }
 }
 

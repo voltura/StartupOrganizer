@@ -7,6 +7,10 @@ using Microsoft.Win32;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using System.Diagnostics;
+using System.Management.Automation;
+using System.Collections.ObjectModel;
+using System.Management.Automation.Runspaces;
+using System.Text;
 
 #endregion Using statements
 
@@ -34,7 +38,34 @@ which binary value would we use for each option?
 Depends on the first binary of the value: 0000 0000B, the least significant bit is turn on(0)/off(1). and the 5th is the switch enable(0)/disable(1) bit, for example: set xxxx 1xxxB for the first binary, the switch in windows setting will be:
 
 
-However, we usually set the first binary bit to 0x02 (enable) / 0x03 (disable).*/
+However, we usually set the first binary bit to 0x02 (enable) / 0x03 (disable).
+
+ UWP apps 
+
+ Computer\HKEY_CURRENT_USER\SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\Microsoft.YourPhone_8wekyb3d8bbwe\YourPhone\State 0 default disabled, 2 enabled 1 disabled
+UserEnabledStartupOnce 1
+
+
+https://stackoverflow.com/questions/41160159/get-list-of-installed-windows-apps
+
+https://stackoverflow.com/questions/56265062/programmatically-get-list-of-installed-application-executables-windows10-c
+
+
+powershell
+get-StartApps
+
+parse all ending with !App
+
+navigate to 
+Computer\HKEY_CURRENT_USER\SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\
+ <index of last space> . remove !App _add_ \ and first part until tab or multiple space, replace space with ''.
+
+set state 
+State 0 default disabled, 2 enabled 1 disabled
+and 
+UserEnabledStartupOnce 1
+
+ */
 
 #endregion Notes
 
@@ -157,6 +188,80 @@ namespace StartupOrganizer
             GetStartupItemsFromFolder(computerStartupFolder, 1);
         }
 
+        private void GetStartupItemsFromUWP()
+        {
+            List<string> uwpApps = GetUwpApps();
+            for (int i = 0; i < 2; i++)
+            {
+                foreach (string row in uwpApps)
+                {
+                    if (row.EndsWith("!App}"))
+                    {
+                        string appPath = row[(row.LastIndexOf('=') + 1)..].Replace("!App}", "");
+                        string appName = row[(row.IndexOf("=") + 1)..];
+                        appName = appName.Substring(0, appName.IndexOf(';'));
+                        string regKeyUwpApp = @"SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\" + appPath + @"\" + appName.Replace(" ", "");
+                        RegistryKey k;
+
+                        if (i == 0)
+                        {
+                            k = Registry.CurrentUser.OpenSubKey(regKeyUwpApp);
+                            if (k == null) k = Registry.CurrentUser.OpenSubKey(regKeyUwpApp + "StartupId");
+                        }
+                        else 
+                        {
+                            k = Registry.LocalMachine.OpenSubKey(regKeyUwpApp);
+                            if (k == null) k = Registry.LocalMachine.OpenSubKey(regKeyUwpApp + "StartupId");
+                        }
+                        if (k != null)
+                        {
+                            string state = k.GetValue("State").ToString();
+                            Debug.WriteLine(appName + $" {((state == "0" || state == "1") ? "Disabled" : "Enabled")}");
+                            StartupItem startupItem = new();
+                            startupItem.ID = m_StartupItems.Count + 1;
+                            startupItem.GroupIndex = 0;
+                            startupItem.ValueName = appName;
+                            startupItem.Folder = "";
+                            startupItem.Publisher = appPath.Substring(0, appPath.IndexOf('.') != -1 ? appPath.IndexOf('.') : appPath.Length);
+                            startupItem.Executable = appName;
+                            startupItem.Enabled = !(state == "0" || state == "1");
+                            startupItem.Parameters = "";
+                            startupItem.Name = appName;
+                            startupItem.Type = "UWP";
+                            m_StartupItems.Add(startupItem);
+                        }
+                    }
+                }
+            }
+        }
+
+        private static List<string> GetUwpApps()
+        {
+            Collection<PSObject> result = PowerShell.Create().AddCommand("get-StartApps").Invoke();
+            List<string> uwpApps = new();
+            foreach (PSObject p in result)
+            {
+                uwpApps.Add(p.ToString());
+            }
+            return uwpApps;
+        }
+        private static List<string> RunScript(string scriptText)
+        {
+            Runspace runspace = RunspaceFactory.CreateRunspace();
+            runspace.Open();
+            Pipeline pipeline = runspace.CreatePipeline();
+            pipeline.Commands.AddScript(scriptText);
+            pipeline.Commands.Add("Out-String");
+            Collection<PSObject> results = pipeline.Invoke();
+            runspace.Close();
+            List<string> uwpApps = new();
+            foreach (PSObject obj in results)
+            {
+                uwpApps.Add(obj.ToString());
+            }
+            return uwpApps;
+        }
+
         private void GetStartupItemsFromFolder(string folder, int group)
         {
             foreach (string file in Directory.GetFiles(folder))
@@ -201,6 +306,7 @@ namespace StartupOrganizer
                         startupItem.Enabled = flag != 3;
                     }
                 }
+                startupItem.Type = "Folder";
                 m_StartupItems.Add(startupItem);
             }
         }
@@ -310,6 +416,7 @@ namespace StartupOrganizer
                     }
                 }
                 FillFileDetails(exeAndPath, ref startupItem);
+                startupItem.Type = "Registry";
                 m_StartupItems.Add(startupItem);
             }
         }
@@ -326,7 +433,9 @@ namespace StartupOrganizer
                     Tag = Convert.ToString(startupItem.ID),
                     Text = startupItem.Name
                 };
-                string[] row = { startupItem.Publisher, startupItem.Executable, startupItem.Parameters, startupItem.PartOfOS ? " YES " : " NO ", startupItem.Enabled ? "Enabled" : "Disabled" };
+                string[] row = { startupItem.Publisher, startupItem.Executable, startupItem.Parameters, 
+                    startupItem.PartOfOS ? " YES " : " NO ", startupItem.Enabled ? "Enabled" : "Disabled",
+                    startupItem.Type };
                 listViewItem.SubItems.AddRange(row);
                 listViewStartupItems.Items.Add(listViewItem);
             }
@@ -398,6 +507,7 @@ namespace StartupOrganizer
             LoadStartupItemsFromRegistry(LOCAL_MACHINE_RUN_REG);
             LoadStartupItemsFromRegistry(LOCAL_MACHINE_RUN_32_REG);
             LoadStartupItemsFromStartupFolders();
+            GetStartupItemsFromUWP();
             PopulateListView();
         }
 

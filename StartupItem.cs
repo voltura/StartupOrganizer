@@ -21,6 +21,6 @@ namespace StartupOrganizer
         public bool Enabled { get; set; }
         public string LinkName { get; set; }
         public string LinkFolder { get; set; }
-
+        public string Type { get; set; }
     }
 }
