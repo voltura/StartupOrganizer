@@ -18,5 +18,9 @@ namespace StartupOrganizer
         public string ProductVersion { get; set; }
         public string FileVersion { get; set; }
         public bool PartOfOS { get; set; }
+        public bool Enabled { get; set; }
+        public string LinkName { get; set; }
+        public string LinkFolder { get; set; }
+
     }
 }
