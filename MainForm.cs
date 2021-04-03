@@ -1,16 +1,15 @@
 ﻿#region Using statements
 
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
-using System.Windows.Forms;
-using Microsoft.Win32;
-using System.IO;
-using System.Security.Cryptography.X509Certificates;
-using System.Diagnostics;
-using System.Management.Automation;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.IO;
+using System.Management.Automation;
 using System.Management.Automation.Runspaces;
-using System.Text;
+using System.Security.Cryptography.X509Certificates;
+using System.Windows.Forms;
 
 #endregion Using statements
 
@@ -208,7 +207,7 @@ namespace StartupOrganizer
                             k = Registry.CurrentUser.OpenSubKey(regKeyUwpApp);
                             if (k == null) k = Registry.CurrentUser.OpenSubKey(regKeyUwpApp + "StartupId");
                         }
-                        else 
+                        else
                         {
                             k = Registry.LocalMachine.OpenSubKey(regKeyUwpApp);
                             if (k == null) k = Registry.LocalMachine.OpenSubKey(regKeyUwpApp + "StartupId");
@@ -276,7 +275,7 @@ namespace StartupOrganizer
                 {
                     startupItem.LinkFolder = fi.Directory.FullName;
                     startupItem.LinkName = fi.Name;
-                    
+
                     string targetFile = GetShortcutTarget(file);
                     FileInfo tfi = new(targetFile);
                     startupItem.Folder = tfi.Directory.FullName;
@@ -369,8 +368,8 @@ namespace StartupOrganizer
         private void LoadStartupItemsFromRegistry(string registrySubKey)
         {
             bool userReg = registrySubKey.Equals(CURRENT_USER_RUN_REG) || registrySubKey.Equals(CURRENT_USER_RUN_32_REG);
-            using RegistryKey regKeyRun = userReg ? 
-                Registry.CurrentUser.OpenSubKey(registrySubKey.Replace(@"HKEY_CURRENT_USER\","")) : 
+            using RegistryKey regKeyRun = userReg ?
+                Registry.CurrentUser.OpenSubKey(registrySubKey.Replace(@"HKEY_CURRENT_USER\", "")) :
                 Registry.LocalMachine.OpenSubKey(registrySubKey.Replace(@"HKEY_LOCAL_MACHINE\", ""));
             if (regKeyRun is null) return;
             string[] runValueNames = regKeyRun.GetValueNames();
@@ -391,7 +390,7 @@ namespace StartupOrganizer
                     pathAndParams = new string[] { runValueData.Trim() };
                 string parameters = pathAndParams != null ? (pathAndParams.Length > 1 ? pathAndParams?[1] : string.Empty) : string.Empty;
                 string exeAndPath = pathAndParams != null ? pathAndParams?[0] : string.Empty;
-                FileInfo fi = File.Exists(exeAndPath) ? new(exeAndPath) : null;                
+                FileInfo fi = File.Exists(exeAndPath) ? new(exeAndPath) : null;
                 StartupItem startupItem = new();
                 startupItem.ID = m_StartupItems.Count + 1;
                 startupItem.RegistryKey = registrySubKey;
@@ -406,7 +405,7 @@ namespace StartupOrganizer
                 using RegistryKey regKeyApprovedRun = userReg ?
                     Registry.CurrentUser.OpenSubKey(CURRENT_USER_APPROVED_RUN_REG.Replace(@"HKEY_CURRENT_USER\", "")) :
                     Registry.LocalMachine.OpenSubKey(LOCAL_MACHINE_APPROVED_RUN_REG.Replace(@"HKEY_LOCAL_MACHINE\", ""));
-                if (regKeyApprovedRun != null && !string.IsNullOrEmpty(startupItem.ValueName)) 
+                if (regKeyApprovedRun != null && !string.IsNullOrEmpty(startupItem.ValueName))
                 {
                     byte[] binaryData = (byte[])regKeyApprovedRun.GetValue(startupItem.ValueName);
                     if (binaryData != null && binaryData.Length > 0)
@@ -433,7 +432,7 @@ namespace StartupOrganizer
                     Tag = Convert.ToString(startupItem.ID),
                     Text = startupItem.Name
                 };
-                string[] row = { startupItem.Publisher, startupItem.Executable, startupItem.Parameters, 
+                string[] row = { startupItem.Publisher, startupItem.Executable, startupItem.Parameters,
                     startupItem.PartOfOS ? " YES " : " NO ", startupItem.Enabled ? "Enabled" : "Disabled",
                     startupItem.Type };
                 listViewItem.SubItems.AddRange(row);
@@ -443,7 +442,7 @@ namespace StartupOrganizer
             listViewStartupItems.AutoResizeColumns(ColumnHeaderAutoResizeStyle.ColumnContent);
             listViewStartupItems.EndUpdate();
             int formWidth = 100;
-            foreach(ColumnHeader columnHeader in listViewStartupItems.Columns)
+            foreach (ColumnHeader columnHeader in listViewStartupItems.Columns)
             {
                 formWidth += columnHeader.Width;
             }
@@ -454,7 +453,7 @@ namespace StartupOrganizer
         {
             startupItem.Publisher = UNKNOWN;
             startupItem.Name = startupItem.ValueName;
-            if (!File.Exists(fileName)) 
+            if (!File.Exists(fileName))
             {
                 return;
             }
@@ -468,15 +467,15 @@ namespace StartupOrganizer
             }
             FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(fileName);
             var productName = fileVersionInfo.ProductName;
-            
-            if (!string.IsNullOrEmpty(productName) && productName == @"Microsoft® Windows® Operating System") 
+
+            if (!string.IsNullOrEmpty(productName) && productName == @"Microsoft® Windows® Operating System")
             {
                 startupItem.PartOfOS = true;
             }
             if (!string.IsNullOrEmpty(productName) && !startupItem.PartOfOS)
             {
                 startupItem.Name = productName;
-            } 
+            }
             else if (!string.IsNullOrEmpty(fileVersionInfo.FileDescription))
             {
                 startupItem.Name = fileVersionInfo.FileDescription;
