@@ -85,7 +85,7 @@ namespace StartupOrganizer
             this.listViewStartupItems.HideSelection = false;
             this.listViewStartupItems.Location = new System.Drawing.Point(12, 105);
             this.listViewStartupItems.Name = "listViewStartupItems";
-            this.listViewStartupItems.Size = new System.Drawing.Size(1920, 784);
+            this.listViewStartupItems.Size = new System.Drawing.Size(1919, 1051);
             this.listViewStartupItems.Sorting = System.Windows.Forms.SortOrder.Ascending;
             this.listViewStartupItems.TabIndex = 0;
             this.listViewStartupItems.UseCompatibleStateImageBehavior = false;
@@ -241,7 +241,7 @@ namespace StartupOrganizer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(15F, 37F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1943, 902);
+            this.ClientSize = new System.Drawing.Size(1943, 1169);
             this.Controls.Add(this.btnDisable);
             this.Controls.Add(this.btnEnable);
             this.Controls.Add(this.btnDetails);

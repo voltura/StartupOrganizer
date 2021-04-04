@@ -163,6 +163,39 @@ namespace StartupOrganizer
 
         private void BrowseBackupItems()
         {
+            if (listViewStartupItems.SelectedItems is null) return;
+
+            // get first selected ID of list via tag
+            ListViewItem item = listViewStartupItems.SelectedItems[0];
+            if (item is null) return;
+            int id = Convert.ToInt32(item.Tag);
+
+            // get record via ID from m_StartupItems list
+            StartupItem match = m_StartupItems.Find(x => x.ID.Equals(id));
+
+            // check if type is folder
+            if (match.Type == "Folder")
+            {
+                // get folder + executable
+                string fullPath = Path.Combine(match.Folder, match.Executable);
+
+                // run explorer.exe with folder + exe as param
+                ProcessStartInfo info = new() { UseShellExecute = true, WindowStyle = ProcessWindowStyle.Normal, FileName = match.Folder, WorkingDirectory = match.Folder };
+                Process.Start(info);
+                return;
+            }
+            else if (match.Type == "Registry")
+            {
+                string key = $@"Computer\{match.RegistryKey}";
+                string regScript = @$"REG ADD HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Applets\Regedit /v LastKey /d ""{key}"" /F
+START regedit.exe";
+                string scriptFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    $"{Application.ProductName}_REG.ps1");
+                File.WriteAllText(scriptFile, regScript);
+                RunPostScript(scriptFile);
+                File.Delete(scriptFile);
+                return;
+            }
             throw new NotImplementedException();
         }
 

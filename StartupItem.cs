@@ -1,8 +1,9 @@
 ﻿using Microsoft.Win32;
+using System;
 
 namespace StartupOrganizer
 {
-    internal struct StartupItem
+    internal struct StartupItem : IComparable, IEquatable<StartupItem>
     {
         public int ID { get; set; }
         public string RegistryKey { get; set; }
@@ -22,5 +23,56 @@ namespace StartupOrganizer
         public string LinkName { get; set; }
         public string LinkFolder { get; set; }
         public string Type { get; set; }
+
+        public int CompareTo(object obj)
+        {
+            return ID.CompareTo(obj);
+        }
+
+        public bool Equals(StartupItem other)
+        {
+            return ID == other.ID;
+        }
+
+        public static bool operator ==(StartupItem si1, StartupItem si2)
+        {
+            return si1.Equals(si2);
+        }
+
+        public static bool operator !=(StartupItem si1, StartupItem si2)
+        {
+            return !(si1 == si2);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null || GetType() != obj.GetType())
+                return false;
+
+            var si2 = (StartupItem)obj;
+            return (ID == si2.ID);
+        }
+
+        public override int GetHashCode()
+        {
+            return ID.GetHashCode() ^
+                RegistryKey.GetHashCode() ^
+                GroupIndex.GetHashCode() ^
+                ValueName.GetHashCode() ^
+                Kind.GetHashCode() ^
+                ValueData.GetHashCode() ^
+                Executable.GetHashCode() ^
+                Folder.GetHashCode() ^
+                Publisher.GetHashCode() ^
+                Name.GetHashCode() ^
+                Parameters.GetHashCode() ^
+                ProductVersion.GetHashCode() ^
+                FileVersion.GetHashCode() ^
+                PartOfOS.GetHashCode() ^
+                Enabled.GetHashCode() ^
+                LinkName.GetHashCode() ^
+                LinkFolder.GetHashCode() ^
+                Type.GetHashCode();
+        }
     }
 }
