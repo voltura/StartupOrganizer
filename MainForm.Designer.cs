@@ -38,6 +38,7 @@ namespace StartupOrganizer
             this.columnHeaderParam = new System.Windows.Forms.ColumnHeader();
             this.columnHeaderOS = new System.Windows.Forms.ColumnHeader();
             this.columnHeaderStatus = new System.Windows.Forms.ColumnHeader();
+            this.columnHeaderType = new System.Windows.Forms.ColumnHeader();
             this.btnSave = new System.Windows.Forms.Button();
             this.btnBackup = new System.Windows.Forms.Button();
             this.btnRestore = new System.Windows.Forms.Button();
@@ -47,7 +48,8 @@ namespace StartupOrganizer
             this.btnDelete = new System.Windows.Forms.Button();
             this.btnBrowse = new System.Windows.Forms.Button();
             this.btnDetails = new System.Windows.Forms.Button();
-            this.columnHeaderType = new System.Windows.Forms.ColumnHeader();
+            this.btnEnable = new System.Windows.Forms.Button();
+            this.btnDisable = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // listViewStartupItems
@@ -83,7 +85,8 @@ namespace StartupOrganizer
             this.listViewStartupItems.HideSelection = false;
             this.listViewStartupItems.Location = new System.Drawing.Point(12, 105);
             this.listViewStartupItems.Name = "listViewStartupItems";
-            this.listViewStartupItems.Size = new System.Drawing.Size(1128, 784);
+            this.listViewStartupItems.Size = new System.Drawing.Size(1920, 784);
+            this.listViewStartupItems.Sorting = System.Windows.Forms.SortOrder.Ascending;
             this.listViewStartupItems.TabIndex = 0;
             this.listViewStartupItems.UseCompatibleStateImageBehavior = false;
             this.listViewStartupItems.View = System.Windows.Forms.View.Details;
@@ -118,6 +121,11 @@ namespace StartupOrganizer
             this.columnHeaderStatus.Text = "Status";
             this.columnHeaderStatus.Width = 160;
             // 
+            // columnHeaderType
+            // 
+            this.columnHeaderType.Text = "Type";
+            this.columnHeaderType.Width = 120;
+            // 
             // btnSave
             // 
             this.btnSave.Location = new System.Drawing.Point(12, 12);
@@ -150,11 +158,12 @@ namespace StartupOrganizer
             // 
             // btnExit
             // 
-            this.btnExit.Location = new System.Drawing.Point(1012, 12);
+            this.btnExit.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnExit.Location = new System.Drawing.Point(1810, 12);
             this.btnExit.Name = "btnExit";
             this.btnExit.Size = new System.Drawing.Size(121, 87);
             this.btnExit.TabIndex = 4;
-            this.btnExit.Text = "&Exit";
+            this.btnExit.Text = "E&xit";
             this.btnExit.UseVisualStyleBackColor = true;
             this.btnExit.Click += new System.EventHandler(this.Exit_Click);
             // 
@@ -184,7 +193,7 @@ namespace StartupOrganizer
             this.btnDelete.Name = "btnDelete";
             this.btnDelete.Size = new System.Drawing.Size(121, 87);
             this.btnDelete.TabIndex = 7;
-            this.btnDelete.Text = "&Delete";
+            this.btnDelete.Text = "Delete";
             this.btnDelete.UseVisualStyleBackColor = true;
             this.btnDelete.Click += new System.EventHandler(this.Delete_Click);
             // 
@@ -208,16 +217,33 @@ namespace StartupOrganizer
             this.btnDetails.UseVisualStyleBackColor = true;
             this.btnDetails.Click += new System.EventHandler(this.Details_Click);
             // 
-            // columnHeaderType
+            // btnEnable
             // 
-            this.columnHeaderType.Text = "Type";
-            this.columnHeaderType.Width = 120;
+            this.btnEnable.Location = new System.Drawing.Point(1014, 12);
+            this.btnEnable.Name = "btnEnable";
+            this.btnEnable.Size = new System.Drawing.Size(121, 87);
+            this.btnEnable.TabIndex = 10;
+            this.btnEnable.Text = "&Enable";
+            this.btnEnable.UseVisualStyleBackColor = true;
+            this.btnEnable.Click += new System.EventHandler(this.Enable_Click);
+            // 
+            // btnDisable
+            // 
+            this.btnDisable.Location = new System.Drawing.Point(1141, 12);
+            this.btnDisable.Name = "btnDisable";
+            this.btnDisable.Size = new System.Drawing.Size(121, 87);
+            this.btnDisable.TabIndex = 11;
+            this.btnDisable.Text = "Disable";
+            this.btnDisable.UseVisualStyleBackColor = true;
+            this.btnDisable.Click += new System.EventHandler(this.Disable_Click);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(15F, 37F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1151, 902);
+            this.ClientSize = new System.Drawing.Size(1943, 902);
+            this.Controls.Add(this.btnDisable);
+            this.Controls.Add(this.btnEnable);
             this.Controls.Add(this.btnDetails);
             this.Controls.Add(this.btnBrowse);
             this.Controls.Add(this.btnDelete);
@@ -254,6 +280,8 @@ namespace StartupOrganizer
         private System.Windows.Forms.ColumnHeader columnHeaderOS;
         private System.Windows.Forms.ColumnHeader columnHeaderStatus;
         private System.Windows.Forms.ColumnHeader columnHeaderType;
+        private System.Windows.Forms.Button btnEnable;
+        private System.Windows.Forms.Button btnDisable;
     }
 }
 

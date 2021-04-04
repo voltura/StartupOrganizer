@@ -3,11 +3,8 @@
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
-using System.Management.Automation;
-using System.Management.Automation.Runspaces;
 using System.Security.Cryptography.X509Certificates;
 using System.Windows.Forms;
 
@@ -148,6 +145,15 @@ namespace StartupOrganizer
         {
             BrowseBackupItems();
         }
+        private void Enable_Click(object sender, EventArgs e)
+        {
+            EnableStartupItems();
+        }
+
+        private void Disable_Click(object sender, EventArgs e)
+        {
+            DisableStartupItems();
+        }
 
         #endregion Events
 
@@ -189,76 +195,111 @@ namespace StartupOrganizer
 
         private void GetStartupItemsFromUWP()
         {
-            List<string> uwpApps = GetUwpApps();
+            List<UwpApp> uwpApps = GetUwpApps();
             for (int i = 0; i < 2; i++)
             {
-                foreach (string row in uwpApps)
+                foreach (UwpApp app in uwpApps)
                 {
-                    if (row.EndsWith("!App}"))
+                    string regKeyUwpApp = @$"SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\{app.ID}\{app.NoSpacesName}";
+                    RegistryKey k;
+                    if (i == 0)
                     {
-                        string appPath = row[(row.LastIndexOf('=') + 1)..].Replace("!App}", "");
-                        string appName = row[(row.IndexOf("=") + 1)..];
-                        appName = appName.Substring(0, appName.IndexOf(';'));
-                        string regKeyUwpApp = @"SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\" + appPath + @"\" + appName.Replace(" ", "");
-                        RegistryKey k;
-
-                        if (i == 0)
-                        {
-                            k = Registry.CurrentUser.OpenSubKey(regKeyUwpApp);
-                            if (k == null) k = Registry.CurrentUser.OpenSubKey(regKeyUwpApp + "StartupId");
-                        }
-                        else
-                        {
-                            k = Registry.LocalMachine.OpenSubKey(regKeyUwpApp);
-                            if (k == null) k = Registry.LocalMachine.OpenSubKey(regKeyUwpApp + "StartupId");
-                        }
-                        if (k != null)
-                        {
-                            string state = k.GetValue("State").ToString();
-                            Debug.WriteLine(appName + $" {((state == "0" || state == "1") ? "Disabled" : "Enabled")}");
-                            StartupItem startupItem = new();
-                            startupItem.ID = m_StartupItems.Count + 1;
-                            startupItem.GroupIndex = 0;
-                            startupItem.ValueName = appName;
-                            startupItem.Folder = "";
-                            startupItem.Publisher = appPath.Substring(0, appPath.IndexOf('.') != -1 ? appPath.IndexOf('.') : appPath.Length);
-                            startupItem.Executable = appName;
-                            startupItem.Enabled = !(state == "0" || state == "1");
-                            startupItem.Parameters = "";
-                            startupItem.Name = appName;
-                            startupItem.Type = "UWP";
-                            m_StartupItems.Add(startupItem);
-                        }
+                        k = Registry.CurrentUser.OpenSubKey(regKeyUwpApp);
+                        if (k == null) k = Registry.CurrentUser.OpenSubKey(regKeyUwpApp + "StartupId");
+                    }
+                    else
+                    {
+                        // NOTE: Will not really get anything here...
+                        k = Registry.LocalMachine.OpenSubKey(regKeyUwpApp);
+                        if (k == null) k = Registry.LocalMachine.OpenSubKey(regKeyUwpApp + "StartupId");
+                    }
+                    if (k != null)
+                    {
+                        string state = k.GetValue("State").ToString();
+                        Debug.WriteLine(app.Name + $" {((state == "0" || state == "1") ? "Disabled" : "Enabled")}");
+                        StartupItem startupItem = new();
+                        startupItem.ID = m_StartupItems.Count + 1;
+                        startupItem.GroupIndex = 0;
+                        startupItem.ValueName = app.Name;
+                        startupItem.Folder = string.Empty;
+                        startupItem.Publisher = app.ID.Substring(0, app.ID.IndexOf('.') != -1 ? app.ID.IndexOf('.') : app.ID.Length);
+                        startupItem.Executable = app.Executable;
+                        startupItem.Enabled = !(state == "0" || state == "1");
+                        startupItem.Parameters = string.Empty;
+                        startupItem.Name = app.Name;
+                        startupItem.Type = "UWP";
+                        m_StartupItems.Add(startupItem);
                     }
                 }
             }
         }
 
-        private static List<string> GetUwpApps()
+        private static List<UwpApp> GetUwpApps()
         {
-            Collection<PSObject> result = PowerShell.Create().AddCommand("get-StartApps").Invoke();
-            List<string> uwpApps = new();
-            foreach (PSObject p in result)
+            string scriptFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Application.ProductName + ".ps1");
+            File.WriteAllText(scriptFile, "get-StartApps");
+            List<string> result = RunPostScript(scriptFile);
+            File.Delete(scriptFile);
+            List<UwpApp> apps = new();
+            foreach (string row in result)
             {
-                uwpApps.Add(p.ToString());
+                string trimmedRow = row.Trim();
+                if (trimmedRow.Length != 0)
+                {
+                    int doubleSpaceIndex = trimmedRow.IndexOf("  "); //NOTE: potentially miss app with longest name, but yeah
+                    if (doubleSpaceIndex != -1)
+                    {
+                        string name = trimmedRow[0..doubleSpaceIndex];
+                        string noSpacesName = name.Replace(" ", string.Empty);
+                        string id = trimmedRow[doubleSpaceIndex..].Trim();
+                        if (id.EndsWith("!App"))
+                        {
+                            UwpApp uwpApps = new() { ID = id[0..^4], Name = name, NoSpacesName = noSpacesName, Executable = id };
+                            apps.Add(uwpApps);
+                        }
+                    }
+                }
             }
-            return uwpApps;
+            return apps;
         }
-        private static List<string> RunScript(string scriptText)
+
+        internal static List<string> RunPostScript(string scriptFile)
         {
-            Runspace runspace = RunspaceFactory.CreateRunspace();
-            runspace.Open();
-            Pipeline pipeline = runspace.CreatePipeline();
-            pipeline.Commands.AddScript(scriptText);
-            pipeline.Commands.Add("Out-String");
-            Collection<PSObject> results = pipeline.Invoke();
-            runspace.Close();
-            List<string> uwpApps = new();
-            foreach (PSObject obj in results)
+            List<string> output = new();
+            ProcessStartInfo startInfo = new("powershell", $"-ExecutionPolicy Bypass -File {scriptFile}")
             {
-                uwpApps.Add(obj.ToString());
+                CreateNoWindow = true,
+                Verb = "runas",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false
+            };
+            using (Process process = new()
+            {
+                EnableRaisingEvents = true,
+                StartInfo = startInfo
+            })
+            {
+                process.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
+                {
+                    if (e.Data != null)
+                    {
+                        output.Add(e.Data);
+                    }
+                };
+                process.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
+                {
+                    if (e.Data != null)
+                    {
+                        output.Add(e.Data);
+                    }
+                };
+                process.Start();
+                process.BeginOutputReadLine();
+                process.BeginErrorReadLine();
+                process.WaitForExit(2000);
             }
-            return uwpApps;
+            return output;
         }
 
         private void GetStartupItemsFromFolder(string folder, int group)
@@ -294,8 +335,8 @@ namespace StartupOrganizer
                 }
                 // check if enabled or disabled
                 using RegistryKey regKeyApprovedRun = group == 0 ?
-                    Registry.CurrentUser.OpenSubKey(CURRENT_USER_APPROVED_STARTUP_FOLDER_REG.Replace(@"HKEY_CURRENT_USER\", "")) :
-                    Registry.LocalMachine.OpenSubKey(LOCAL_MACHINE_APPROVED_STARTUP_FOLDER_REG.Replace(@"HKEY_LOCAL_MACHINE\", ""));
+                    Registry.CurrentUser.OpenSubKey(CURRENT_USER_APPROVED_STARTUP_FOLDER_REG.Replace(@"HKEY_CURRENT_USER\", string.Empty)) :
+                    Registry.LocalMachine.OpenSubKey(LOCAL_MACHINE_APPROVED_STARTUP_FOLDER_REG.Replace(@"HKEY_LOCAL_MACHINE\", string.Empty));
                 if (regKeyApprovedRun != null && !string.IsNullOrEmpty(startupItem.ValueName))
                 {
                     byte[] binaryData = (byte[])regKeyApprovedRun.GetValue(startupItem.ValueName);
@@ -337,17 +378,17 @@ namespace StartupOrganizer
                 fileStream.Seek(0xc, SeekOrigin.Current); // seek to offset to base pathname
                 uint fileOffset = fileReader.ReadUInt32(); // read offset to base pathname
                                                            // the offset is from the beginning of the file info struct (fileInfoStartsAt)
-                fileStream.Seek((fileInfoStartsAt + fileOffset), SeekOrigin.Begin); // Seek to beginning of
-                                                                                    // base pathname (target)
-                long pathLength = (totalStructLength + fileInfoStartsAt) - fileStream.Position - 2; // read
-                                                                                                    // the base pathname. I don't need the 2 terminating nulls.
+                fileStream.Seek(fileInfoStartsAt + fileOffset, SeekOrigin.Begin); // Seek to beginning of
+                                                                                  // base pathname (target)
+                long pathLength = totalStructLength + fileInfoStartsAt - fileStream.Position - 2; // read
+                                                                                                  // the base pathname. I don't need the 2 terminating nulls.
                 char[] linkTarget = fileReader.ReadChars((int)pathLength); // should be unicode safe
                 var link = new string(linkTarget);
 
                 int begin = link.IndexOf("\0\0");
                 if (begin > -1)
                 {
-                    int end = link.IndexOf("\\\\", begin + 2) + 2;
+                    int end = link.IndexOf(@"\\", begin + 2) + 2;
                     end = link.IndexOf('\0', end) + 1;
 
                     string firstPart = link.Substring(0, begin);
@@ -362,15 +403,15 @@ namespace StartupOrganizer
             }
             catch
             {
-                return "";
+                return string.Empty;
             }
         }
         private void LoadStartupItemsFromRegistry(string registrySubKey)
         {
             bool userReg = registrySubKey.Equals(CURRENT_USER_RUN_REG) || registrySubKey.Equals(CURRENT_USER_RUN_32_REG);
             using RegistryKey regKeyRun = userReg ?
-                Registry.CurrentUser.OpenSubKey(registrySubKey.Replace(@"HKEY_CURRENT_USER\", "")) :
-                Registry.LocalMachine.OpenSubKey(registrySubKey.Replace(@"HKEY_LOCAL_MACHINE\", ""));
+                Registry.CurrentUser.OpenSubKey(registrySubKey.Replace(@"HKEY_CURRENT_USER\", string.Empty)) :
+                Registry.LocalMachine.OpenSubKey(registrySubKey.Replace(@"HKEY_LOCAL_MACHINE\", string.Empty));
             if (regKeyRun is null) return;
             string[] runValueNames = regKeyRun.GetValueNames();
 
@@ -403,8 +444,8 @@ namespace StartupOrganizer
                 startupItem.Parameters = parameters;
                 // check if enabled or disabled
                 using RegistryKey regKeyApprovedRun = userReg ?
-                    Registry.CurrentUser.OpenSubKey(CURRENT_USER_APPROVED_RUN_REG.Replace(@"HKEY_CURRENT_USER\", "")) :
-                    Registry.LocalMachine.OpenSubKey(LOCAL_MACHINE_APPROVED_RUN_REG.Replace(@"HKEY_LOCAL_MACHINE\", ""));
+                    Registry.CurrentUser.OpenSubKey(CURRENT_USER_APPROVED_RUN_REG.Replace(@"HKEY_CURRENT_USER\", string.Empty)) :
+                    Registry.LocalMachine.OpenSubKey(LOCAL_MACHINE_APPROVED_RUN_REG.Replace(@"HKEY_LOCAL_MACHINE\", string.Empty));
                 if (regKeyApprovedRun != null && !string.IsNullOrEmpty(startupItem.ValueName))
                 {
                     byte[] binaryData = (byte[])regKeyApprovedRun.GetValue(startupItem.ValueName);
@@ -508,6 +549,16 @@ namespace StartupOrganizer
             LoadStartupItemsFromStartupFolders();
             GetStartupItemsFromUWP();
             PopulateListView();
+        }
+
+        private void EnableStartupItems()
+        {
+            throw new NotImplementedException();
+        }
+
+        private void DisableStartupItems()
+        {
+            throw new NotImplementedException();
         }
 
         #endregion Private methods

@@ -2,7 +2,7 @@
 
 namespace StartupOrganizer
 {
-    internal class StartupItem
+    internal struct StartupItem
     {
         public int ID { get; set; }
         public string RegistryKey { get; set; }
