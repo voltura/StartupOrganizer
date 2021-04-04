@@ -19,6 +19,8 @@ using System.Windows.Forms;
 //Scheduled Tasks that is set to run at startup
 //Services that are set to automatic
 //C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp
+//%ProgramData%\Microsoft\Windows\Start Menu\Programs\Startup 
+//%USERPROFILE%\AppData\Roaming\Microsoft\Windows\Start Menu
 //users start menu startup folders
 
 // Enabled|disabled info - how to read?
