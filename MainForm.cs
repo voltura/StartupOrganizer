@@ -272,16 +272,15 @@ START regedit.exe";
         private static List<UwpApp> GetUwpApps()
         {
             string scriptFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Application.ProductName + ".ps1");
-            File.WriteAllText(scriptFile, "get-StartApps");
-            List<string> result = RunPostScript(scriptFile);
-            File.Delete(scriptFile);
             List<UwpApp> apps = new();
-            foreach (string row in result)
+            try
             {
-                string trimmedRow = row.Trim();
-                if (trimmedRow.StartsWith("Name") || trimmedRow.StartsWith("-")) continue;
-                if (trimmedRow.Length != 0)
+                File.WriteAllText(scriptFile, "get-StartApps");
+                List<string> result = RunPostScript(scriptFile);
+                foreach (string row in result)
                 {
+                    string trimmedRow = row.Trim();
+                    if (trimmedRow.Length == 0 || trimmedRow.StartsWith("Name") || trimmedRow.StartsWith("-")) continue;
                     int doubleSpaceIndex = trimmedRow.IndexOf("  "); //NOTE: potentially miss app with longest name, but yeah
                     if (doubleSpaceIndex != -1)
                     {
@@ -294,11 +293,10 @@ START regedit.exe";
                             UwpApp uwpApp = new() { ID = id[0..^4], Name = name, NoSpacesName = noSpacesName, Executable = id };
 
                             // get some info needed for folder in which the uwp app is installed via powershell script
-                            scriptFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Application.ProductName + ".ps1");
-                            string scriptContents = @$"$myvar = ""_"" + (Get-AppxPackage -Name ""*{packageName}*""|" +
+                            string scriptContents = @$"$v = ""_"" + (Get-AppxPackage -Name ""*{packageName}*""|" +
 @$"Get-AppxPackageManifest).package.Identity.Version + ""_"" + (Get-AppxPackage -Name ""*{packageName}*""|" +
                                 @$"Get-AppxPackageManifest).package.Identity.ProcessorArchitecture + ""__""
-Write-Host $myvar";
+Write-Host $v";
                             File.WriteAllText(scriptFile, scriptContents);
                             result = RunPostScript(scriptFile);
                             if (result.Count == 1)
@@ -306,11 +304,14 @@ Write-Host $myvar";
                                 //Example: C:\Program Files\WindowsApps\Microsoft.YourPhone_1.21022.160.0_x64__8wekyb3d8bbwe
                                 uwpApp.Folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "WindowsApps", uwpApp.ID.Replace("_", result[0]));
                             }
-                            File.Delete(scriptFile);
                             apps.Add(uwpApp);
                         }
                     }
                 }
+            }
+            finally
+            {
+                if (File.Exists(scriptFile)) File.Delete(scriptFile);
             }
             return apps;
         }
