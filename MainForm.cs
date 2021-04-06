@@ -145,7 +145,7 @@ namespace StartupOrganizer
 
         private void Browse_Click(object sender, EventArgs e)
         {
-            BrowseBackupItems();
+            BrowseItem();
         }
         private void Enable_Click(object sender, EventArgs e)
         {
@@ -161,7 +161,7 @@ namespace StartupOrganizer
 
         #region Private methods
 
-        private void BrowseBackupItems()
+        private void BrowseItem()
         {
             if (listViewStartupItems.SelectedItems is null) return;
 
@@ -174,7 +174,7 @@ namespace StartupOrganizer
             StartupItem match = m_StartupItems.Find(x => x.ID.Equals(id));
 
             // check if type is folder
-            if (match.Type == "Folder")
+            if (match.Type == "Folder" || match.Type == "UWP")
             {
                 // get folder + executable
                 string fullPath = Path.Combine(match.Folder, match.Executable);
@@ -256,7 +256,7 @@ START regedit.exe";
                         startupItem.ID = m_StartupItems.Count + 1;
                         startupItem.GroupIndex = 0;
                         startupItem.ValueName = app.Name;
-                        startupItem.Folder = string.Empty;
+                        startupItem.Folder = app.Folder;
                         startupItem.Publisher = app.ID.Substring(0, app.ID.IndexOf('.') != -1 ? app.ID.IndexOf('.') : app.ID.Length);
                         startupItem.Executable = app.Executable;
                         startupItem.Enabled = !(state == "0" || state == "1");
@@ -279,6 +279,7 @@ START regedit.exe";
             foreach (string row in result)
             {
                 string trimmedRow = row.Trim();
+                if (trimmedRow.StartsWith("Name") || trimmedRow.StartsWith("-")) continue;
                 if (trimmedRow.Length != 0)
                 {
                     int doubleSpaceIndex = trimmedRow.IndexOf("  "); //NOTE: potentially miss app with longest name, but yeah
@@ -289,8 +290,24 @@ START regedit.exe";
                         string id = trimmedRow[doubleSpaceIndex..].Trim();
                         if (id.EndsWith("!App"))
                         {
-                            UwpApp uwpApps = new() { ID = id[0..^4], Name = name, NoSpacesName = noSpacesName, Executable = id };
-                            apps.Add(uwpApps);
+                            string packageName = id.IndexOf('_') > 0 ? id[..id.IndexOf('_')] : noSpacesName;
+                            UwpApp uwpApp = new() { ID = id[0..^4], Name = name, NoSpacesName = noSpacesName, Executable = id };
+
+                            // get some info needed for folder in which the uwp app is installed via powershell script
+                            scriptFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Application.ProductName + ".ps1");
+                            string scriptContents = @$"$myvar = ""_"" + (Get-AppxPackage -Name ""*{packageName}*""|" +
+@$"Get-AppxPackageManifest).package.Identity.Version + ""_"" + (Get-AppxPackage -Name ""*{packageName}*""|" +
+                                @$"Get-AppxPackageManifest).package.Identity.ProcessorArchitecture + ""__""
+Write-Host $myvar";
+                            File.WriteAllText(scriptFile, scriptContents);
+                            result = RunPostScript(scriptFile);
+                            if (result.Count == 1)
+                            {
+                                //Example: C:\Program Files\WindowsApps\Microsoft.YourPhone_1.21022.160.0_x64__8wekyb3d8bbwe
+                                uwpApp.Folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "WindowsApps", uwpApp.ID.Replace("_", result[0]));
+                            }
+                            File.Delete(scriptFile);
+                            apps.Add(uwpApp);
                         }
                     }
                 }
