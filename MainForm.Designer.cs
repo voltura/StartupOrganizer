@@ -128,6 +128,7 @@ namespace StartupOrganizer
             // 
             // btnSave
             // 
+            this.btnSave.Enabled = false;
             this.btnSave.Location = new System.Drawing.Point(12, 12);
             this.btnSave.Name = "btnSave";
             this.btnSave.Size = new System.Drawing.Size(121, 87);
@@ -173,7 +174,7 @@ namespace StartupOrganizer
             this.btnLoad.Name = "btnLoad";
             this.btnLoad.Size = new System.Drawing.Size(121, 87);
             this.btnLoad.TabIndex = 5;
-            this.btnLoad.Text = "&Load";
+            this.btnLoad.Text = "Re&load";
             this.btnLoad.UseVisualStyleBackColor = true;
             this.btnLoad.Click += new System.EventHandler(this.Load_Click);
             // 
@@ -183,7 +184,7 @@ namespace StartupOrganizer
             this.btnAdd.Name = "btnAdd";
             this.btnAdd.Size = new System.Drawing.Size(121, 87);
             this.btnAdd.TabIndex = 6;
-            this.btnAdd.Text = "&Add";
+            this.btnAdd.Text = "&Add...";
             this.btnAdd.UseVisualStyleBackColor = true;
             this.btnAdd.Click += new System.EventHandler(this.Add_Click);
             // 

@@ -5,6 +5,8 @@ namespace StartupOrganizer
 {
     internal struct StartupItem : IComparable, IEquatable<StartupItem>
     {
+        #region Public properties
+
         public int ID { get; set; }
         public string RegistryKey { get; set; }
         public int GroupIndex { get; set; }
@@ -22,7 +24,27 @@ namespace StartupOrganizer
         public bool Enabled { get; set; }
         public string LinkName { get; set; }
         public string LinkFolder { get; set; }
-        public string Type { get; set; }
+        public TYPE Type { get; set; }
+        public MODIFIED_STATE State { get; set; }
+
+        #endregion Public properties
+
+        #region Public enums
+
+        public enum MODIFIED_STATE
+        {
+            UNTOUCHED,
+            MODIFIED,
+            NEW
+        }
+        public enum TYPE
+        {
+            FOLDER,
+            REGISTRY,
+            UWP
+        }
+
+        #endregion Public enums
 
         public int CompareTo(object obj)
         {
@@ -72,7 +94,8 @@ namespace StartupOrganizer
                 Enabled.GetHashCode() ^
                 LinkName.GetHashCode() ^
                 LinkFolder.GetHashCode() ^
-                Type.GetHashCode();
+                Type.GetHashCode() ^
+                State.GetHashCode();
         }
     }
 }

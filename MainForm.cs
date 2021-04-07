@@ -83,6 +83,21 @@ namespace StartupOrganizer
         const string LOCAL_MACHINE_APPROVED_STARTUP_FOLDER_REG = @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder";
         const string CURRENT_USER_RUN_32_REG = @"HKEY_CURRENT_USER\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run";
         const string LOCAL_MACHINE_RUN_32_REG = @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run";
+        private readonly AddForm m_AddForm = new();
+        internal bool ChangesMade
+        {
+            get
+            {
+                return m_ChangesMade;
+            }
+            set
+            {
+                m_ChangesMade = value;
+                btnSave.Enabled = m_ChangesMade;
+            }
+        }
+
+        private bool m_ChangesMade;
 
         #endregion Private variables
 
@@ -173,8 +188,8 @@ namespace StartupOrganizer
             // get record via ID from m_StartupItems list
             StartupItem match = m_StartupItems.Find(x => x.ID.Equals(id));
 
-            // check if type is folder
-            if (match.Type == "Folder" || match.Type == "UWP")
+            // check if type is folder or UWP
+            if (match.Type == StartupItem.TYPE.FOLDER || match.Type == StartupItem.TYPE.UWP)
             {
                 // get folder + executable
                 string fullPath = Path.Combine(match.Folder, match.Executable);
@@ -184,7 +199,7 @@ namespace StartupOrganizer
                 Process.Start(info);
                 return;
             }
-            else if (match.Type == "Registry")
+            else if (match.Type == StartupItem.TYPE.REGISTRY)
             {
                 string key = $@"Computer\{match.RegistryKey}";
                 string regScript = @$"REG ADD HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Applets\Regedit /v LastKey /d ""{key}"" /F
@@ -213,9 +228,49 @@ START regedit.exe";
         }
         private void AddStartupItem()
         {
-            throw new NotImplementedException();
+            if (DialogResult.OK == m_AddForm.ShowDialog(this))
+            {
+                StartupItem itemToAdd = m_AddForm.StartupItemToAdd;
+                FillFileDetails(Path.Combine(itemToAdd.Folder, itemToAdd.Executable),
+                    ref itemToAdd);
+                m_StartupItems.Add(itemToAdd);
+                LoadStartupItems(true);
+            }
         }
         private void SaveStartupItems()
+        {
+            foreach (StartupItem item in m_StartupItems)
+            {
+                if (item.State == StartupItem.MODIFIED_STATE.MODIFIED || item.State == StartupItem.MODIFIED_STATE.NEW)
+                {
+                    switch (item.Type)
+                    {
+                        case StartupItem.TYPE.FOLDER:
+                            SaveStartupItemFolder(item);
+                            break;
+                        case StartupItem.TYPE.REGISTRY:
+                            SaveStartupItemRegistry(item);
+                            break;
+                        case StartupItem.TYPE.UWP:
+                            SaveStartupItemUwp();
+                            break;
+                    }
+                }
+            }
+            throw new NotImplementedException();
+        }
+
+        private void SaveStartupItemUwp()
+        {
+            throw new NotImplementedException();
+        }
+
+        private void SaveStartupItemFolder(StartupItem item)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void SaveStartupItemRegistry(StartupItem item)
         {
             throw new NotImplementedException();
         }
@@ -262,7 +317,7 @@ START regedit.exe";
                         startupItem.Enabled = !(state == "0" || state == "1");
                         startupItem.Parameters = string.Empty;
                         startupItem.Name = app.Name;
-                        startupItem.Type = "UWP";
+                        startupItem.Type = StartupItem.TYPE.UWP;
                         m_StartupItems.Add(startupItem);
                     }
                 }
@@ -399,7 +454,8 @@ Write-Host $v";
                         startupItem.Enabled = flag != 3;
                     }
                 }
-                startupItem.Type = "Folder";
+                startupItem.Type = StartupItem.TYPE.FOLDER;
+                startupItem.State = StartupItem.MODIFIED_STATE.UNTOUCHED;
                 m_StartupItems.Add(startupItem);
             }
         }
@@ -495,6 +551,7 @@ Write-Host $v";
                 startupItem.ValueName = runValueName;
                 startupItem.ValueData = runValueData;
                 startupItem.Parameters = parameters;
+                startupItem.State = StartupItem.MODIFIED_STATE.UNTOUCHED;
                 // check if enabled or disabled
                 using RegistryKey regKeyApprovedRun = userReg ?
                     Registry.CurrentUser.OpenSubKey(CURRENT_USER_APPROVED_RUN_REG.Replace(@"HKEY_CURRENT_USER\", string.Empty)) :
@@ -509,7 +566,7 @@ Write-Host $v";
                     }
                 }
                 FillFileDetails(exeAndPath, ref startupItem);
-                startupItem.Type = "Registry";
+                startupItem.Type = StartupItem.TYPE.REGISTRY;
                 m_StartupItems.Add(startupItem);
             }
         }
@@ -528,7 +585,7 @@ Write-Host $v";
                 };
                 string[] row = { startupItem.Publisher, startupItem.Executable, startupItem.Parameters,
                     startupItem.PartOfOS ? " YES " : " NO ", startupItem.Enabled ? "Enabled" : "Disabled",
-                    startupItem.Type };
+                    startupItem.Type.ToString() };
                 listViewItem.SubItems.AddRange(row);
                 listViewStartupItems.Items.Add(listViewItem);
             }
@@ -592,15 +649,19 @@ Write-Host $v";
             m_StartupItems.Clear();
         }
 
-        private void LoadStartupItems()
+        private void LoadStartupItems(bool userAddedItem = false)
         {
-            CleanLoadedStartupItems();
-            LoadStartupItemsFromRegistry(CURRENT_USER_RUN_REG);
-            LoadStartupItemsFromRegistry(CURRENT_USER_RUN_32_REG);
-            LoadStartupItemsFromRegistry(LOCAL_MACHINE_RUN_REG);
-            LoadStartupItemsFromRegistry(LOCAL_MACHINE_RUN_32_REG);
-            LoadStartupItemsFromStartupFolders();
-            GetStartupItemsFromUWP();
+            if (!userAddedItem)
+            {
+                CleanLoadedStartupItems();
+                LoadStartupItemsFromRegistry(CURRENT_USER_RUN_REG);
+                LoadStartupItemsFromRegistry(CURRENT_USER_RUN_32_REG);
+                LoadStartupItemsFromRegistry(LOCAL_MACHINE_RUN_REG);
+                LoadStartupItemsFromRegistry(LOCAL_MACHINE_RUN_32_REG);
+                LoadStartupItemsFromStartupFolders();
+                GetStartupItemsFromUWP();
+            }
+            ChangesMade = userAddedItem;
             PopulateListView();
         }
 
