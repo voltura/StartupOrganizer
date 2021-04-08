@@ -5,10 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Windows.Forms;
-using StartupOrganizer;
-using System.Runtime.InteropServices;
 
 #endregion Using statements
 
@@ -184,10 +183,7 @@ namespace StartupOrganizer
             // check if type is folder or UWP
             if (match.Type == StartupItem.TYPE.FOLDER || match.Type == StartupItem.TYPE.UWP)
             {
-                // get folder + executable
-                string fullPath = Path.Combine(match.Folder, match.Executable);
-
-                // run explorer.exe with folder + exe as param
+                // run explorer.exe with folder as param
                 ProcessStartInfo info = new() { UseShellExecute = true, WindowStyle = ProcessWindowStyle.Normal, FileName = match.Folder, WorkingDirectory = match.Folder };
                 Process.Start(info);
                 return;
@@ -268,10 +264,10 @@ START regedit.exe";
             using RegistryKey hkcuRun = root.OpenSubKey(Constants.RUN_SUBKEY_REG, true);
             hkcuRun.SetValue(item.Name, item.ValueData);
             if (!item.Enabled)
-            {                
+            {
                 using RegistryKey allowedRun = root.OpenSubKey(item.Folder.Contains(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86)) ? Constants.APPROVED_RUN_SUBKEY_REG32 : Constants.APPROVED_RUN_SUBKEY_REG, true);
-                allowedRun.SetValue(item.Name, 
-                    new byte[] { 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }, 
+                allowedRun.SetValue(item.Name,
+                    new byte[] { 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
                     RegistryValueKind.Binary);
             }
         }
@@ -307,7 +303,6 @@ START regedit.exe";
                     if (k != null)
                     {
                         string state = k.GetValue("State").ToString();
-                        Debug.WriteLine(app.Name + $" {((state == "0" || state == "1") ? "Disabled" : "Enabled")}");
                         StartupItem startupItem = new();
                         startupItem.ID = m_StartupItems.Count + 1;
                         startupItem.GroupIndex = 0;
@@ -444,7 +439,7 @@ Write-Host $v";
                 }
                 // check if enabled or disabled
                 using RegistryKey regKeyApprovedRun = group == 0 ?
-                    Registry.CurrentUser.OpenSubKey(Constants. CURRENT_USER_APPROVED_STARTUP_FOLDER_REG.Replace(@"HKEY_CURRENT_USER\", string.Empty)) :
+                    Registry.CurrentUser.OpenSubKey(Constants.CURRENT_USER_APPROVED_STARTUP_FOLDER_REG.Replace(@"HKEY_CURRENT_USER\", string.Empty)) :
                     Registry.LocalMachine.OpenSubKey(Constants.LOCAL_MACHINE_APPROVED_STARTUP_FOLDER_REG.Replace(@"HKEY_LOCAL_MACHINE\", string.Empty));
                 if (regKeyApprovedRun != null && !string.IsNullOrEmpty(startupItem.ValueName))
                 {
@@ -640,10 +635,11 @@ Write-Host $v";
             if (fi != null)
             {
                 CompilationMode mode = GetCompilationMode(fi);
-                bool potential32 = mode.HasFlag(CompilationMode.Bit32);
+                bool potential32 = mode.HasFlag(CompilationMode.Bit32) || fi.DirectoryName.Contains(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86));
                 startupItem.X86 = potential32;
             }
         }
+
         public static CompilationMode GetCompilationMode(FileInfo info)
         {
             if (!info.Exists) throw new ArgumentException($"{info.FullName} does not exist");
