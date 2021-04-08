@@ -30,7 +30,7 @@ namespace StartupOrganizer
         private void InitializeComponent()
         {
             this.rbtnRegistryHKCU = new System.Windows.Forms.RadioButton();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.groupBoxType = new System.Windows.Forms.GroupBox();
             this.rbtnFolderMachine = new System.Windows.Forms.RadioButton();
             this.rbtnRegistryHKLM = new System.Windows.Forms.RadioButton();
             this.rbtnUwp = new System.Windows.Forms.RadioButton();
@@ -39,15 +39,15 @@ namespace StartupOrganizer
             this.txtFileName = new System.Windows.Forms.TextBox();
             this.btnBrowse = new System.Windows.Forms.Button();
             this.btnAdd = new System.Windows.Forms.Button();
-            this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.groupBoxState = new System.Windows.Forms.GroupBox();
             this.rbtnDisabled = new System.Windows.Forms.RadioButton();
             this.rbtnEnabled = new System.Windows.Forms.RadioButton();
             this.btnCancel = new System.Windows.Forms.Button();
             this.ofdSelectStartupItemFile = new System.Windows.Forms.OpenFileDialog();
             this.lblParameters = new System.Windows.Forms.Label();
             this.txtParameters = new System.Windows.Forms.TextBox();
-            this.groupBox1.SuspendLayout();
-            this.groupBox2.SuspendLayout();
+            this.groupBoxType.SuspendLayout();
+            this.groupBoxState.SuspendLayout();
             this.SuspendLayout();
             // 
             // rbtnRegistryHKCU
@@ -61,21 +61,20 @@ namespace StartupOrganizer
             this.rbtnRegistryHKCU.TabStop = true;
             this.rbtnRegistryHKCU.Text = "Registry (Current user)";
             this.rbtnRegistryHKCU.UseVisualStyleBackColor = true;
-            this.rbtnRegistryHKCU.CheckedChanged += new System.EventHandler(this.RegistryHKCU_CheckedChanged);
             // 
-            // groupBox1
+            // groupBoxType
             // 
-            this.groupBox1.Controls.Add(this.rbtnFolderMachine);
-            this.groupBox1.Controls.Add(this.rbtnRegistryHKLM);
-            this.groupBox1.Controls.Add(this.rbtnUwp);
-            this.groupBox1.Controls.Add(this.rbtnFolderCurrentUser);
-            this.groupBox1.Controls.Add(this.rbtnRegistryHKCU);
-            this.groupBox1.Location = new System.Drawing.Point(12, 111);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(543, 272);
-            this.groupBox1.TabIndex = 1;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Type";
+            this.groupBoxType.Controls.Add(this.rbtnFolderMachine);
+            this.groupBoxType.Controls.Add(this.rbtnRegistryHKLM);
+            this.groupBoxType.Controls.Add(this.rbtnUwp);
+            this.groupBoxType.Controls.Add(this.rbtnFolderCurrentUser);
+            this.groupBoxType.Controls.Add(this.rbtnRegistryHKCU);
+            this.groupBoxType.Location = new System.Drawing.Point(12, 111);
+            this.groupBoxType.Name = "groupBoxType";
+            this.groupBoxType.Size = new System.Drawing.Size(543, 272);
+            this.groupBoxType.TabIndex = 1;
+            this.groupBoxType.TabStop = false;
+            this.groupBoxType.Text = "Type";
             // 
             // rbtnFolderMachine
             // 
@@ -86,7 +85,6 @@ namespace StartupOrganizer
             this.rbtnFolderMachine.TabIndex = 4;
             this.rbtnFolderMachine.Text = "Start menu link (All users)";
             this.rbtnFolderMachine.UseVisualStyleBackColor = true;
-            this.rbtnFolderMachine.CheckedChanged += new System.EventHandler(this.FolderMachine_CheckedChanged);
             // 
             // rbtnRegistryHKLM
             // 
@@ -97,7 +95,6 @@ namespace StartupOrganizer
             this.rbtnRegistryHKLM.TabIndex = 3;
             this.rbtnRegistryHKLM.Text = "Registry (All users)";
             this.rbtnRegistryHKLM.UseVisualStyleBackColor = true;
-            this.rbtnRegistryHKLM.CheckedChanged += new System.EventHandler(this.RegistryHKLM_CheckedChanged);
             // 
             // rbtnUwp
             // 
@@ -108,7 +105,6 @@ namespace StartupOrganizer
             this.rbtnUwp.TabIndex = 2;
             this.rbtnUwp.Text = "Universal Windows Platform (UWP) app";
             this.rbtnUwp.UseVisualStyleBackColor = true;
-            this.rbtnUwp.CheckedChanged += new System.EventHandler(this.Uwp_CheckedChanged);
             // 
             // rbtnFolderCurrentUser
             // 
@@ -119,7 +115,6 @@ namespace StartupOrganizer
             this.rbtnFolderCurrentUser.TabIndex = 1;
             this.rbtnFolderCurrentUser.Text = "Start menu link (Current user)";
             this.rbtnFolderCurrentUser.UseVisualStyleBackColor = true;
-            this.rbtnFolderCurrentUser.CheckedChanged += new System.EventHandler(this.FolderCurrentUser_CheckedChanged);
             // 
             // lblFileName
             // 
@@ -136,6 +131,7 @@ namespace StartupOrganizer
             this.txtFileName.Name = "txtFileName";
             this.txtFileName.Size = new System.Drawing.Size(383, 43);
             this.txtFileName.TabIndex = 1;
+            this.txtFileName.TextChanged += new System.EventHandler(this.FileName_TextChanged);
             // 
             // btnBrowse
             // 
@@ -151,6 +147,7 @@ namespace StartupOrganizer
             // btnAdd
             // 
             this.btnAdd.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnAdd.Enabled = false;
             this.btnAdd.Location = new System.Drawing.Point(572, 449);
             this.btnAdd.Name = "btnAdd";
             this.btnAdd.Size = new System.Drawing.Size(169, 89);
@@ -159,16 +156,16 @@ namespace StartupOrganizer
             this.btnAdd.UseVisualStyleBackColor = true;
             this.btnAdd.Click += new System.EventHandler(this.Add_Click);
             // 
-            // groupBox2
+            // groupBoxState
             // 
-            this.groupBox2.Controls.Add(this.rbtnDisabled);
-            this.groupBox2.Controls.Add(this.rbtnEnabled);
-            this.groupBox2.Location = new System.Drawing.Point(12, 391);
-            this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(543, 146);
-            this.groupBox2.TabIndex = 6;
-            this.groupBox2.TabStop = false;
-            this.groupBox2.Text = "State";
+            this.groupBoxState.Controls.Add(this.rbtnDisabled);
+            this.groupBoxState.Controls.Add(this.rbtnEnabled);
+            this.groupBoxState.Location = new System.Drawing.Point(12, 391);
+            this.groupBoxState.Name = "groupBoxState";
+            this.groupBoxState.Size = new System.Drawing.Size(543, 146);
+            this.groupBoxState.TabIndex = 6;
+            this.groupBoxState.TabStop = false;
+            this.groupBoxState.Text = "State";
             // 
             // rbtnDisabled
             // 
@@ -179,7 +176,6 @@ namespace StartupOrganizer
             this.rbtnDisabled.TabIndex = 1;
             this.rbtnDisabled.Text = "Disabled";
             this.rbtnDisabled.UseVisualStyleBackColor = true;
-            this.rbtnDisabled.CheckedChanged += new System.EventHandler(this.Disabled_CheckedChanged);
             // 
             // rbtnEnabled
             // 
@@ -192,7 +188,6 @@ namespace StartupOrganizer
             this.rbtnEnabled.TabStop = true;
             this.rbtnEnabled.Text = "Enabled";
             this.rbtnEnabled.UseVisualStyleBackColor = true;
-            this.rbtnEnabled.CheckedChanged += new System.EventHandler(this.Enabled_CheckedChanged);
             // 
             // btnCancel
             // 
@@ -236,12 +231,12 @@ namespace StartupOrganizer
             this.Controls.Add(this.txtParameters);
             this.Controls.Add(this.lblParameters);
             this.Controls.Add(this.btnCancel);
-            this.Controls.Add(this.groupBox2);
+            this.Controls.Add(this.groupBoxState);
             this.Controls.Add(this.btnAdd);
             this.Controls.Add(this.btnBrowse);
             this.Controls.Add(this.txtFileName);
             this.Controls.Add(this.lblFileName);
-            this.Controls.Add(this.groupBox1);
+            this.Controls.Add(this.groupBoxType);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "AddForm";
@@ -252,10 +247,10 @@ namespace StartupOrganizer
             this.Text = "Add startup item";
             this.TopMost = true;
             this.Load += new System.EventHandler(this.AddForm_Load);
-            this.groupBox1.ResumeLayout(false);
-            this.groupBox1.PerformLayout();
-            this.groupBox2.ResumeLayout(false);
-            this.groupBox2.PerformLayout();
+            this.groupBoxType.ResumeLayout(false);
+            this.groupBoxType.PerformLayout();
+            this.groupBoxState.ResumeLayout(false);
+            this.groupBoxState.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -264,7 +259,7 @@ namespace StartupOrganizer
         #endregion
 
         private System.Windows.Forms.RadioButton rbtnRegistryHKCU;
-        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.GroupBox groupBoxType;
         private System.Windows.Forms.RadioButton rbtnFolderMachine;
         private System.Windows.Forms.RadioButton rbtnRegistryHKLM;
         private System.Windows.Forms.RadioButton rbtnUwp;
@@ -273,7 +268,7 @@ namespace StartupOrganizer
         private System.Windows.Forms.TextBox txtFileName;
         private System.Windows.Forms.Button btnBrowse;
         private System.Windows.Forms.Button btnAdd;
-        private System.Windows.Forms.GroupBox groupBox2;
+        private System.Windows.Forms.GroupBox groupBoxState;
         private System.Windows.Forms.RadioButton rbtnDisabled;
         private System.Windows.Forms.RadioButton rbtnEnabled;
         private System.Windows.Forms.Button btnCancel;

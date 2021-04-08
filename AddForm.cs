@@ -21,16 +21,6 @@ namespace StartupOrganizer
             InitializeComponent();
         }
 
-        private void Enabled_CheckedChanged(object sender, EventArgs e)
-        {
-            rbtnDisabled.Checked = !rbtnEnabled.Checked;
-        }
-
-        private void Disabled_CheckedChanged(object sender, EventArgs e)
-        {
-            rbtnEnabled.Checked = !rbtnDisabled.Checked;
-        }
-
         private void AddForm_Load(object sender, EventArgs e)
         {
             ofdSelectStartupItemFile.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
@@ -41,7 +31,7 @@ namespace StartupOrganizer
         {
             if (DialogResult.OK == ofdSelectStartupItemFile.ShowDialog(this))
             {
-                this.txtFileName.Text = ofdSelectStartupItemFile.FileName;
+                txtFileName.Text = ofdSelectStartupItemFile.FileName;
             }
         }
 
@@ -57,44 +47,22 @@ namespace StartupOrganizer
             m_StartupItem.Executable = Path.GetFileName(txtFileName.Text);
             m_StartupItem.Folder = Path.GetDirectoryName(txtFileName.Text);
             m_StartupItem.Type = rbtnFolderCurrentUser.Checked || rbtnFolderMachine.Checked ? StartupItem.TYPE.FOLDER : rbtnRegistryHKCU.Checked || rbtnRegistryHKLM.Checked ? StartupItem.TYPE.REGISTRY : StartupItem.TYPE.UWP;
+            if (rbtnRegistryHKCU.Checked)
+                m_StartupItem.RegRoot = Constants.REG_ROOT.HKCU;
+            if (rbtnRegistryHKLM.Checked)
+                m_StartupItem.RegRoot = Constants.REG_ROOT.HKLM;
             m_StartupItem.State = StartupItem.MODIFIED_STATE.NEW;
             m_StartupItem.Parameters = txtParameters.Text;
+            if (rbtnRegistryHKCU.Checked || rbtnRegistryHKLM.Checked)
+                m_StartupItem.ValueData = $"\"{txtFileName.Text}\" {txtParameters.Text}";
+            m_StartupItem.GroupIndex = rbtnRegistryHKCU.Checked || rbtnFolderCurrentUser.Checked || rbtnUwp.Checked ? 0 : 1;
             DialogResult = txtFileName.Text.Length > 0 && File.Exists(txtFileName.Text) ? DialogResult.OK : DialogResult.Cancel;
             Close();
         }
 
-        private void RegistryHKCU_CheckedChanged(object sender, EventArgs e)
+        private void FileName_TextChanged(object sender, EventArgs e)
         {
-            ToogleTypeChecked((RadioButton)sender);
-        }
-
-        private void ToogleTypeChecked(RadioButton rb)
-        {
-            if (!rb.Equals(rbtnFolderCurrentUser)) rbtnFolderCurrentUser.Checked = !rb.Checked;
-            if (!rb.Equals(rbtnFolderMachine)) rbtnFolderMachine.Checked = !rb.Checked;
-            if (!rb.Equals(rbtnRegistryHKCU)) rbtnRegistryHKCU.Checked = !rb.Checked;
-            if (!rb.Equals(rbtnRegistryHKLM)) rbtnRegistryHKLM.Checked = !rb.Checked;
-            if (!rb.Equals(rbtnUwp)) rbtnUwp.Checked = !rb.Checked;
-        }
-
-        private void RegistryHKLM_CheckedChanged(object sender, EventArgs e)
-        {
-            ToogleTypeChecked((RadioButton)sender);
-        }
-
-        private void FolderCurrentUser_CheckedChanged(object sender, EventArgs e)
-        {
-            ToogleTypeChecked((RadioButton)sender);
-        }
-
-        private void FolderMachine_CheckedChanged(object sender, EventArgs e)
-        {
-            ToogleTypeChecked((RadioButton)sender);
-        }
-
-        private void Uwp_CheckedChanged(object sender, EventArgs e)
-        {
-            ToogleTypeChecked((RadioButton)sender);
+            btnAdd.Enabled = txtFileName.TextLength > 3;
         }
     }
 }

@@ -26,6 +26,8 @@ namespace StartupOrganizer
         public string LinkFolder { get; set; }
         public TYPE Type { get; set; }
         public MODIFIED_STATE State { get; set; }
+        public Constants.REG_ROOT RegRoot { get; set; }
+        public bool X86 { get; set; }
 
         #endregion Public properties
 

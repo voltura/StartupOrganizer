@@ -7,6 +7,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using System.Windows.Forms;
+using StartupOrganizer;
+using System.Runtime.InteropServices;
 
 #endregion Using statements
 
@@ -74,15 +76,6 @@ namespace StartupOrganizer
         #region Private variables
 
         private readonly List<StartupItem> m_StartupItems;
-        const string UNKNOWN = "Unknown";
-        const string CURRENT_USER_RUN_REG = @"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
-        const string CURRENT_USER_APPROVED_RUN_REG = @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run";
-        const string CURRENT_USER_APPROVED_STARTUP_FOLDER_REG = @"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder";
-        const string LOCAL_MACHINE_RUN_REG = @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
-        const string LOCAL_MACHINE_APPROVED_RUN_REG = @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run";
-        const string LOCAL_MACHINE_APPROVED_STARTUP_FOLDER_REG = @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder";
-        const string CURRENT_USER_RUN_32_REG = @"HKEY_CURRENT_USER\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run";
-        const string LOCAL_MACHINE_RUN_32_REG = @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run";
         private readonly AddForm m_AddForm = new();
         internal bool ChangesMade
         {
@@ -257,7 +250,6 @@ START regedit.exe";
                     }
                 }
             }
-            throw new NotImplementedException();
         }
 
         private void SaveStartupItemUwp()
@@ -270,9 +262,18 @@ START regedit.exe";
             throw new NotImplementedException();
         }
 
-        private void SaveStartupItemRegistry(StartupItem item)
+        private static void SaveStartupItemRegistry(StartupItem item)
         {
-            throw new NotImplementedException();
+            using RegistryKey root = item.RegRoot == Constants.REG_ROOT.HKCU ? Registry.CurrentUser : Registry.LocalMachine;
+            using RegistryKey hkcuRun = root.OpenSubKey(Constants.RUN_SUBKEY_REG, true);
+            hkcuRun.SetValue(item.Name, item.ValueData);
+            if (!item.Enabled)
+            {                
+                using RegistryKey allowedRun = root.OpenSubKey(item.Folder.Contains(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86)) ? Constants.APPROVED_RUN_SUBKEY_REG32 : Constants.APPROVED_RUN_SUBKEY_REG, true);
+                allowedRun.SetValue(item.Name, 
+                    new byte[] { 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }, 
+                    RegistryValueKind.Binary);
+            }
         }
 
         private void LoadStartupItemsFromStartupFolders()
@@ -443,8 +444,8 @@ Write-Host $v";
                 }
                 // check if enabled or disabled
                 using RegistryKey regKeyApprovedRun = group == 0 ?
-                    Registry.CurrentUser.OpenSubKey(CURRENT_USER_APPROVED_STARTUP_FOLDER_REG.Replace(@"HKEY_CURRENT_USER\", string.Empty)) :
-                    Registry.LocalMachine.OpenSubKey(LOCAL_MACHINE_APPROVED_STARTUP_FOLDER_REG.Replace(@"HKEY_LOCAL_MACHINE\", string.Empty));
+                    Registry.CurrentUser.OpenSubKey(Constants. CURRENT_USER_APPROVED_STARTUP_FOLDER_REG.Replace(@"HKEY_CURRENT_USER\", string.Empty)) :
+                    Registry.LocalMachine.OpenSubKey(Constants.LOCAL_MACHINE_APPROVED_STARTUP_FOLDER_REG.Replace(@"HKEY_LOCAL_MACHINE\", string.Empty));
                 if (regKeyApprovedRun != null && !string.IsNullOrEmpty(startupItem.ValueName))
                 {
                     byte[] binaryData = (byte[])regKeyApprovedRun.GetValue(startupItem.ValueName);
@@ -515,12 +516,12 @@ Write-Host $v";
                 return string.Empty;
             }
         }
-        private void LoadStartupItemsFromRegistry(string registrySubKey)
+
+        private void LoadStartupItemsFromRegistry(Constants.REG_ROOT regRoot, bool reg32)
         {
-            bool userReg = registrySubKey.Equals(CURRENT_USER_RUN_REG) || registrySubKey.Equals(CURRENT_USER_RUN_32_REG);
-            using RegistryKey regKeyRun = userReg ?
-                Registry.CurrentUser.OpenSubKey(registrySubKey.Replace(@"HKEY_CURRENT_USER\", string.Empty)) :
-                Registry.LocalMachine.OpenSubKey(registrySubKey.Replace(@"HKEY_LOCAL_MACHINE\", string.Empty));
+            using RegistryKey root = regRoot == Constants.REG_ROOT.HKCU ? Registry.CurrentUser : Registry.LocalMachine;
+            using RegistryKey regKeyRun = reg32 ?
+                root.OpenSubKey(Constants.RUN_SUBKEY_REG32) : root.OpenSubKey(Constants.RUN_SUBKEY_REG);
             if (regKeyRun is null) return;
             string[] runValueNames = regKeyRun.GetValueNames();
 
@@ -543,8 +544,8 @@ Write-Host $v";
                 FileInfo fi = File.Exists(exeAndPath) ? new(exeAndPath) : null;
                 StartupItem startupItem = new();
                 startupItem.ID = m_StartupItems.Count + 1;
-                startupItem.RegistryKey = registrySubKey;
-                startupItem.GroupIndex = registrySubKey.Equals(CURRENT_USER_RUN_REG) || registrySubKey.Equals(CURRENT_USER_RUN_32_REG) ? 0 : 1;
+                startupItem.RegistryKey = regKeyRun.Name;
+                startupItem.GroupIndex = regRoot == Constants.REG_ROOT.HKCU ? 0 : 1;
                 startupItem.Folder = fi == null ? string.Empty : fi.Directory.FullName;
                 startupItem.Executable = fi == null ? string.Empty : fi.Name;
                 startupItem.Kind = kind;
@@ -553,9 +554,7 @@ Write-Host $v";
                 startupItem.Parameters = parameters;
                 startupItem.State = StartupItem.MODIFIED_STATE.UNTOUCHED;
                 // check if enabled or disabled
-                using RegistryKey regKeyApprovedRun = userReg ?
-                    Registry.CurrentUser.OpenSubKey(CURRENT_USER_APPROVED_RUN_REG.Replace(@"HKEY_CURRENT_USER\", string.Empty)) :
-                    Registry.LocalMachine.OpenSubKey(LOCAL_MACHINE_APPROVED_RUN_REG.Replace(@"HKEY_LOCAL_MACHINE\", string.Empty));
+                using RegistryKey regKeyApprovedRun = root.OpenSubKey(Constants.APPROVED_RUN_SUBKEY_REG);
                 if (regKeyApprovedRun != null && !string.IsNullOrEmpty(startupItem.ValueName))
                 {
                     byte[] binaryData = (byte[])regKeyApprovedRun.GetValue(startupItem.ValueName);
@@ -597,12 +596,12 @@ Write-Host $v";
             {
                 formWidth += columnHeader.Width;
             }
-            Width = formWidth > this.Width ? formWidth : Width;
+            Width = formWidth > Width ? formWidth : Width;
         }
 
         private static void FillFileDetails(string fileName, ref StartupItem startupItem)
         {
-            startupItem.Publisher = UNKNOWN;
+            startupItem.Publisher = Constants.UNKNOWN;
             startupItem.Name = startupItem.ValueName;
             if (!File.Exists(fileName))
             {
@@ -633,10 +632,82 @@ Write-Host $v";
             }
             startupItem.ProductVersion = fileVersionInfo.ProductVersion;
             startupItem.FileVersion = fileVersionInfo.FileVersion;
-            if (startupItem.Publisher.Equals(UNKNOWN))
+            if (startupItem.Publisher.Equals(Constants.UNKNOWN))
             {
-                startupItem.Publisher = string.IsNullOrEmpty(fileVersionInfo.CompanyName) ? UNKNOWN : fileVersionInfo.CompanyName;
+                startupItem.Publisher = string.IsNullOrEmpty(fileVersionInfo.CompanyName) ? Constants.UNKNOWN : fileVersionInfo.CompanyName;
             }
+            FileInfo fi = new(fileName);
+            if (fi != null)
+            {
+                CompilationMode mode = GetCompilationMode(fi);
+                bool potential32 = mode.HasFlag(CompilationMode.Bit32);
+                startupItem.X86 = potential32;
+            }
+        }
+        public static CompilationMode GetCompilationMode(FileInfo info)
+        {
+            if (!info.Exists) throw new ArgumentException($"{info.FullName} does not exist");
+
+            var intPtr = IntPtr.Zero;
+            try
+            {
+                uint unmanagedBufferSize = 4096;
+                intPtr = Marshal.AllocHGlobal((int)unmanagedBufferSize);
+
+                using (var stream = File.Open(info.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                {
+                    var bytes = new byte[unmanagedBufferSize];
+                    stream.Read(bytes, 0, bytes.Length);
+                    Marshal.Copy(bytes, 0, intPtr, bytes.Length);
+                }
+
+                //Check DOS header magic number
+                if (Marshal.ReadInt16(intPtr) != 0x5a4d) return CompilationMode.Invalid;
+
+                // This will get the address for the WinNT header  
+                var ntHeaderAddressOffset = Marshal.ReadInt32(intPtr + 60);
+
+                // Check WinNT header signature
+                var signature = Marshal.ReadInt32(intPtr + ntHeaderAddressOffset);
+                if (signature != 0x4550) return CompilationMode.Invalid;
+
+                //Determine file bitness by reading magic from IMAGE_OPTIONAL_HEADER
+                var magic = Marshal.ReadInt16(intPtr + ntHeaderAddressOffset + 24);
+
+                var result = CompilationMode.Invalid;
+                uint clrHeaderSize;
+                if (magic == 0x10b)
+                {
+                    clrHeaderSize = (uint)Marshal.ReadInt32(intPtr + ntHeaderAddressOffset + 24 + 208 + 4);
+                    result |= CompilationMode.Bit32;
+                }
+                else if (magic == 0x20b)
+                {
+                    clrHeaderSize = (uint)Marshal.ReadInt32(intPtr + ntHeaderAddressOffset + 24 + 224 + 4);
+                    result |= CompilationMode.Bit64;
+                }
+                else return CompilationMode.Invalid;
+
+                result |= clrHeaderSize != 0
+                    ? CompilationMode.CLR
+                    : CompilationMode.Native;
+
+                return result;
+            }
+            finally
+            {
+                if (intPtr != IntPtr.Zero) Marshal.FreeHGlobal(intPtr);
+            }
+        }
+
+        [Flags]
+        public enum CompilationMode
+        {
+            Invalid = 0,
+            Native = 0x1,
+            CLR = Native << 1,
+            Bit32 = CLR << 1,
+            Bit64 = Bit32 << 1
         }
 
         private void ShowDetails()
@@ -654,10 +725,10 @@ Write-Host $v";
             if (!userAddedItem)
             {
                 CleanLoadedStartupItems();
-                LoadStartupItemsFromRegistry(CURRENT_USER_RUN_REG);
-                LoadStartupItemsFromRegistry(CURRENT_USER_RUN_32_REG);
-                LoadStartupItemsFromRegistry(LOCAL_MACHINE_RUN_REG);
-                LoadStartupItemsFromRegistry(LOCAL_MACHINE_RUN_32_REG);
+                LoadStartupItemsFromRegistry(Constants.REG_ROOT.HKCU, false);
+                LoadStartupItemsFromRegistry(Constants.REG_ROOT.HKCU, true);
+                LoadStartupItemsFromRegistry(Constants.REG_ROOT.HKLM, false);
+                LoadStartupItemsFromRegistry(Constants.REG_ROOT.HKLM, true);
                 LoadStartupItemsFromStartupFolders();
                 GetStartupItemsFromUWP();
             }
