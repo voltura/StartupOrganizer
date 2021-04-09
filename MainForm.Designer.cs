@@ -275,6 +275,15 @@ namespace StartupOrganizer
             this.btnCopy.UseVisualStyleBackColor = true;
             this.btnCopy.Click += new System.EventHandler(this.Copy_Click);
             // 
+            // toolTip
+            // 
+            this.toolTip.AutoPopDelay = 5000;
+            this.toolTip.InitialDelay = 500;
+            this.toolTip.IsBalloon = true;
+            this.toolTip.ReshowDelay = 500;
+            this.toolTip.ShowAlways = true;
+            this.toolTip.ToolTipIcon = System.Windows.Forms.ToolTipIcon.Info;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(15F, 37F);
@@ -294,6 +303,7 @@ namespace StartupOrganizer
             this.Controls.Add(this.btnBackup);
             this.Controls.Add(this.btnSave);
             this.Controls.Add(this.listViewStartupItems);
+            this.DoubleBuffered = true;
             this.Name = "MainForm";
             this.Text = "Startup Organizer";
             this.Load += new System.EventHandler(this.MainForm_Load);

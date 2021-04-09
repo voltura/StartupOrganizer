@@ -235,6 +235,15 @@ namespace StartupOrganizer
             this.txtParameters.TabIndex = 8;
             this.toolTip.SetToolTip(this.txtParameters, "Parameters for file to run at startup");
             // 
+            // toolTip
+            // 
+            this.toolTip.AutoPopDelay = 5000;
+            this.toolTip.InitialDelay = 500;
+            this.toolTip.IsBalloon = true;
+            this.toolTip.ReshowDelay = 500;
+            this.toolTip.ShowAlways = true;
+            this.toolTip.ToolTipIcon = System.Windows.Forms.ToolTipIcon.Info;
+            // 
             // AddForm
             // 
             this.AcceptButton = this.btnAdd;
