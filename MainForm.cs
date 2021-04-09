@@ -112,6 +112,8 @@ namespace StartupOrganizer
 
         private void Load_Click(object sender, EventArgs e)
         {
+            bool unsavedChanges = m_StartupItems.Contains(new StartupItem { State = StartupItem.MODIFIED_STATE.MODIFIED | StartupItem.MODIFIED_STATE.NEW });
+            if (unsavedChanges && DialogResult.No == MessageBox.Show(this, "Unsaved changes will be lost", "Continue?", MessageBoxButtons.YesNo)) return;
             LoadStartupItems();
         }
 
@@ -162,6 +164,16 @@ namespace StartupOrganizer
         private void Disable_Click(object sender, EventArgs e)
         {
             DisableStartupItems();
+        }
+
+        private void Copy_Click(object sender, EventArgs e)
+        {
+            CopyItemDetailsToClipboard();
+        }
+
+        private void Setup_Click(object sender, EventArgs e)
+        {
+            ShowSetup();
         }
 
         #endregion Events
@@ -738,6 +750,16 @@ Write-Host $v";
         }
 
         private void DisableStartupItems()
+        {
+            throw new NotImplementedException();
+        }
+
+        private void CopyItemDetailsToClipboard()
+        {
+            throw new NotImplementedException();
+        }
+
+        private void ShowSetup()
         {
             throw new NotImplementedException();
         }

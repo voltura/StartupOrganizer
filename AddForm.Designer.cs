@@ -29,6 +29,7 @@ namespace StartupOrganizer
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.rbtnRegistryHKCU = new System.Windows.Forms.RadioButton();
             this.groupBoxType = new System.Windows.Forms.GroupBox();
             this.rbtnFolderMachine = new System.Windows.Forms.RadioButton();
@@ -46,6 +47,7 @@ namespace StartupOrganizer
             this.ofdSelectStartupItemFile = new System.Windows.Forms.OpenFileDialog();
             this.lblParameters = new System.Windows.Forms.Label();
             this.txtParameters = new System.Windows.Forms.TextBox();
+            this.toolTip = new System.Windows.Forms.ToolTip(this.components);
             this.groupBoxType.SuspendLayout();
             this.groupBoxState.SuspendLayout();
             this.SuspendLayout();
@@ -60,6 +62,7 @@ namespace StartupOrganizer
             this.rbtnRegistryHKCU.TabIndex = 0;
             this.rbtnRegistryHKCU.TabStop = true;
             this.rbtnRegistryHKCU.Text = "Registry (Current user)";
+            this.toolTip.SetToolTip(this.rbtnRegistryHKCU, "Run when you login to Windows");
             this.rbtnRegistryHKCU.UseVisualStyleBackColor = true;
             // 
             // groupBoxType
@@ -84,6 +87,7 @@ namespace StartupOrganizer
             this.rbtnFolderMachine.Size = new System.Drawing.Size(346, 41);
             this.rbtnFolderMachine.TabIndex = 4;
             this.rbtnFolderMachine.Text = "Start menu link (All users)";
+            this.toolTip.SetToolTip(this.rbtnFolderMachine, "Run when any user login to Windows");
             this.rbtnFolderMachine.UseVisualStyleBackColor = true;
             // 
             // rbtnRegistryHKLM
@@ -94,16 +98,19 @@ namespace StartupOrganizer
             this.rbtnRegistryHKLM.Size = new System.Drawing.Size(263, 41);
             this.rbtnRegistryHKLM.TabIndex = 3;
             this.rbtnRegistryHKLM.Text = "Registry (All users)";
+            this.toolTip.SetToolTip(this.rbtnRegistryHKLM, "Run when any user login to Windows");
             this.rbtnRegistryHKLM.UseVisualStyleBackColor = true;
             // 
             // rbtnUwp
             // 
             this.rbtnUwp.AutoSize = true;
+            this.rbtnUwp.Enabled = false;
             this.rbtnUwp.Location = new System.Drawing.Point(19, 233);
             this.rbtnUwp.Name = "rbtnUwp";
             this.rbtnUwp.Size = new System.Drawing.Size(517, 41);
             this.rbtnUwp.TabIndex = 2;
             this.rbtnUwp.Text = "Universal Windows Platform (UWP) app";
+            this.toolTip.SetToolTip(this.rbtnUwp, "Run when you login to Windows");
             this.rbtnUwp.UseVisualStyleBackColor = true;
             // 
             // rbtnFolderCurrentUser
@@ -114,6 +121,7 @@ namespace StartupOrganizer
             this.rbtnFolderCurrentUser.Size = new System.Drawing.Size(392, 41);
             this.rbtnFolderCurrentUser.TabIndex = 1;
             this.rbtnFolderCurrentUser.Text = "Start menu link (Current user)";
+            this.toolTip.SetToolTip(this.rbtnFolderCurrentUser, "Run when you login to Windows");
             this.rbtnFolderCurrentUser.UseVisualStyleBackColor = true;
             // 
             // lblFileName
@@ -131,6 +139,7 @@ namespace StartupOrganizer
             this.txtFileName.Name = "txtFileName";
             this.txtFileName.Size = new System.Drawing.Size(383, 43);
             this.txtFileName.TabIndex = 1;
+            this.toolTip.SetToolTip(this.txtFileName, "Full file path including file name, use Browse button");
             this.txtFileName.TextChanged += new System.EventHandler(this.FileName_TextChanged);
             // 
             // btnBrowse
@@ -141,6 +150,7 @@ namespace StartupOrganizer
             this.btnBrowse.Size = new System.Drawing.Size(169, 92);
             this.btnBrowse.TabIndex = 2;
             this.btnBrowse.Text = "&Browse...";
+            this.toolTip.SetToolTip(this.btnBrowse, "Select application or script to be executed at startup");
             this.btnBrowse.UseVisualStyleBackColor = true;
             this.btnBrowse.Click += new System.EventHandler(this.Browse_Click);
             // 
@@ -153,6 +163,7 @@ namespace StartupOrganizer
             this.btnAdd.Size = new System.Drawing.Size(169, 89);
             this.btnAdd.TabIndex = 4;
             this.btnAdd.Text = "&Add";
+            this.toolTip.SetToolTip(this.btnAdd, "Add startup item");
             this.btnAdd.UseVisualStyleBackColor = true;
             this.btnAdd.Click += new System.EventHandler(this.Add_Click);
             // 
@@ -175,6 +186,7 @@ namespace StartupOrganizer
             this.rbtnDisabled.Size = new System.Drawing.Size(152, 41);
             this.rbtnDisabled.TabIndex = 1;
             this.rbtnDisabled.Text = "Disabled";
+            this.toolTip.SetToolTip(this.rbtnDisabled, "File will NOT be executed on startup");
             this.rbtnDisabled.UseVisualStyleBackColor = true;
             // 
             // rbtnEnabled
@@ -187,6 +199,7 @@ namespace StartupOrganizer
             this.rbtnEnabled.TabIndex = 0;
             this.rbtnEnabled.TabStop = true;
             this.rbtnEnabled.Text = "Enabled";
+            this.toolTip.SetToolTip(this.rbtnEnabled, "File will be executed during startup");
             this.rbtnEnabled.UseVisualStyleBackColor = true;
             // 
             // btnCancel
@@ -197,6 +210,7 @@ namespace StartupOrganizer
             this.btnCancel.Size = new System.Drawing.Size(169, 89);
             this.btnCancel.TabIndex = 3;
             this.btnCancel.Text = "&Cancel";
+            this.toolTip.SetToolTip(this.btnCancel, "Do NOT add a startup item");
             this.btnCancel.UseVisualStyleBackColor = true;
             this.btnCancel.Click += new System.EventHandler(this.Cancel_Click);
             // 
@@ -219,6 +233,7 @@ namespace StartupOrganizer
             this.txtParameters.Name = "txtParameters";
             this.txtParameters.Size = new System.Drawing.Size(383, 43);
             this.txtParameters.TabIndex = 8;
+            this.toolTip.SetToolTip(this.txtParameters, "Parameters for file to run at startup");
             // 
             // AddForm
             // 
@@ -245,7 +260,6 @@ namespace StartupOrganizer
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Add startup item";
-            this.TopMost = true;
             this.Load += new System.EventHandler(this.AddForm_Load);
             this.groupBoxType.ResumeLayout(false);
             this.groupBoxType.PerformLayout();
@@ -275,5 +289,6 @@ namespace StartupOrganizer
         private System.Windows.Forms.OpenFileDialog ofdSelectStartupItemFile;
         private System.Windows.Forms.Label lblParameters;
         private System.Windows.Forms.TextBox txtParameters;
+        private System.Windows.Forms.ToolTip toolTip;
     }
 }

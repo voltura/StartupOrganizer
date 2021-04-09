@@ -29,6 +29,7 @@ namespace StartupOrganizer
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.Windows.Forms.ListViewGroup listViewGroup1 = new System.Windows.Forms.ListViewGroup("Current User", System.Windows.Forms.HorizontalAlignment.Left);
             System.Windows.Forms.ListViewGroup listViewGroup2 = new System.Windows.Forms.ListViewGroup("Local Machine", System.Windows.Forms.HorizontalAlignment.Left);
             this.listViewStartupItems = new System.Windows.Forms.ListView();
@@ -50,6 +51,9 @@ namespace StartupOrganizer
             this.btnDetails = new System.Windows.Forms.Button();
             this.btnEnable = new System.Windows.Forms.Button();
             this.btnDisable = new System.Windows.Forms.Button();
+            this.btnSetup = new System.Windows.Forms.Button();
+            this.btnCopy = new System.Windows.Forms.Button();
+            this.toolTip = new System.Windows.Forms.ToolTip(this.components);
             this.SuspendLayout();
             // 
             // listViewStartupItems
@@ -134,6 +138,7 @@ namespace StartupOrganizer
             this.btnSave.Size = new System.Drawing.Size(121, 87);
             this.btnSave.TabIndex = 1;
             this.btnSave.Text = "&Save";
+            this.toolTip.SetToolTip(this.btnSave, "Save changes");
             this.btnSave.UseVisualStyleBackColor = true;
             this.btnSave.Click += new System.EventHandler(this.Save_Click);
             // 
@@ -144,6 +149,7 @@ namespace StartupOrganizer
             this.btnBackup.Size = new System.Drawing.Size(121, 87);
             this.btnBackup.TabIndex = 2;
             this.btnBackup.Text = "&Backup";
+            this.toolTip.SetToolTip(this.btnBackup, "Backup all startup item configuration");
             this.btnBackup.UseVisualStyleBackColor = true;
             this.btnBackup.Click += new System.EventHandler(this.Backup_Click);
             // 
@@ -154,6 +160,7 @@ namespace StartupOrganizer
             this.btnRestore.Size = new System.Drawing.Size(121, 87);
             this.btnRestore.TabIndex = 3;
             this.btnRestore.Text = "&Restore";
+            this.toolTip.SetToolTip(this.btnRestore, "Restore a backup");
             this.btnRestore.UseVisualStyleBackColor = true;
             this.btnRestore.Click += new System.EventHandler(this.Restore_Click);
             // 
@@ -165,6 +172,7 @@ namespace StartupOrganizer
             this.btnExit.Size = new System.Drawing.Size(121, 87);
             this.btnExit.TabIndex = 4;
             this.btnExit.Text = "E&xit";
+            this.toolTip.SetToolTip(this.btnExit, "Exit the Startup Organizer application");
             this.btnExit.UseVisualStyleBackColor = true;
             this.btnExit.Click += new System.EventHandler(this.Exit_Click);
             // 
@@ -175,6 +183,7 @@ namespace StartupOrganizer
             this.btnLoad.Size = new System.Drawing.Size(121, 87);
             this.btnLoad.TabIndex = 5;
             this.btnLoad.Text = "Re&load";
+            this.toolTip.SetToolTip(this.btnLoad, "Reload startup items");
             this.btnLoad.UseVisualStyleBackColor = true;
             this.btnLoad.Click += new System.EventHandler(this.Load_Click);
             // 
@@ -184,7 +193,8 @@ namespace StartupOrganizer
             this.btnAdd.Name = "btnAdd";
             this.btnAdd.Size = new System.Drawing.Size(121, 87);
             this.btnAdd.TabIndex = 6;
-            this.btnAdd.Text = "&Add...";
+            this.btnAdd.Text = "&Add";
+            this.toolTip.SetToolTip(this.btnAdd, "Add new startup item");
             this.btnAdd.UseVisualStyleBackColor = true;
             this.btnAdd.Click += new System.EventHandler(this.Add_Click);
             // 
@@ -195,6 +205,7 @@ namespace StartupOrganizer
             this.btnDelete.Size = new System.Drawing.Size(121, 87);
             this.btnDelete.TabIndex = 7;
             this.btnDelete.Text = "Delete";
+            this.toolTip.SetToolTip(this.btnDelete, "Delete selected startup items");
             this.btnDelete.UseVisualStyleBackColor = true;
             this.btnDelete.Click += new System.EventHandler(this.Delete_Click);
             // 
@@ -205,6 +216,7 @@ namespace StartupOrganizer
             this.btnBrowse.Size = new System.Drawing.Size(121, 87);
             this.btnBrowse.TabIndex = 8;
             this.btnBrowse.Text = "&Browse";
+            this.toolTip.SetToolTip(this.btnBrowse, "Browse file system or registry for selected item");
             this.btnBrowse.UseVisualStyleBackColor = true;
             this.btnBrowse.Click += new System.EventHandler(this.Browse_Click);
             // 
@@ -215,6 +227,7 @@ namespace StartupOrganizer
             this.btnDetails.Size = new System.Drawing.Size(121, 87);
             this.btnDetails.TabIndex = 9;
             this.btnDetails.Text = "&Details";
+            this.toolTip.SetToolTip(this.btnDetails, "Display details for selected startup item");
             this.btnDetails.UseVisualStyleBackColor = true;
             this.btnDetails.Click += new System.EventHandler(this.Details_Click);
             // 
@@ -225,6 +238,7 @@ namespace StartupOrganizer
             this.btnEnable.Size = new System.Drawing.Size(121, 87);
             this.btnEnable.TabIndex = 10;
             this.btnEnable.Text = "&Enable";
+            this.toolTip.SetToolTip(this.btnEnable, "Enable selected startup items");
             this.btnEnable.UseVisualStyleBackColor = true;
             this.btnEnable.Click += new System.EventHandler(this.Enable_Click);
             // 
@@ -235,14 +249,39 @@ namespace StartupOrganizer
             this.btnDisable.Size = new System.Drawing.Size(121, 87);
             this.btnDisable.TabIndex = 11;
             this.btnDisable.Text = "Disable";
+            this.toolTip.SetToolTip(this.btnDisable, "Disable selected startup items");
             this.btnDisable.UseVisualStyleBackColor = true;
             this.btnDisable.Click += new System.EventHandler(this.Disable_Click);
+            // 
+            // btnSetup
+            // 
+            this.btnSetup.Location = new System.Drawing.Point(1395, 12);
+            this.btnSetup.Name = "btnSetup";
+            this.btnSetup.Size = new System.Drawing.Size(121, 87);
+            this.btnSetup.TabIndex = 12;
+            this.btnSetup.Text = "Settings";
+            this.toolTip.SetToolTip(this.btnSetup, "Show Startup Organizer settings");
+            this.btnSetup.UseVisualStyleBackColor = true;
+            this.btnSetup.Click += new System.EventHandler(this.Setup_Click);
+            // 
+            // btnCopy
+            // 
+            this.btnCopy.Location = new System.Drawing.Point(1268, 12);
+            this.btnCopy.Name = "btnCopy";
+            this.btnCopy.Size = new System.Drawing.Size(121, 87);
+            this.btnCopy.TabIndex = 13;
+            this.btnCopy.Text = "Copy";
+            this.toolTip.SetToolTip(this.btnCopy, "Copy selected startup item details to the clipboard");
+            this.btnCopy.UseVisualStyleBackColor = true;
+            this.btnCopy.Click += new System.EventHandler(this.Copy_Click);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(15F, 37F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1943, 1169);
+            this.Controls.Add(this.btnCopy);
+            this.Controls.Add(this.btnSetup);
             this.Controls.Add(this.btnDisable);
             this.Controls.Add(this.btnEnable);
             this.Controls.Add(this.btnDetails);
@@ -283,6 +322,9 @@ namespace StartupOrganizer
         private System.Windows.Forms.ColumnHeader columnHeaderType;
         private System.Windows.Forms.Button btnEnable;
         private System.Windows.Forms.Button btnDisable;
+        private System.Windows.Forms.Button btnSetup;
+        private System.Windows.Forms.Button btnCopy;
+        private System.Windows.Forms.ToolTip toolTip;
     }
 }
 
