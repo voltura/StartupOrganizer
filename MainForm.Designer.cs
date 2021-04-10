@@ -95,10 +95,9 @@ namespace StartupOrganizer
             listViewGroup1,
             listViewGroup2});
             this.listViewStartupItems.HideSelection = false;
-            this.listViewStartupItems.Location = new System.Drawing.Point(8, 71);
-            this.listViewStartupItems.Margin = new System.Windows.Forms.Padding(2);
+            this.listViewStartupItems.Location = new System.Drawing.Point(12, 105);
             this.listViewStartupItems.Name = "listViewStartupItems";
-            this.listViewStartupItems.Size = new System.Drawing.Size(1281, 711);
+            this.listViewStartupItems.Size = new System.Drawing.Size(1920, 1050);
             this.listViewStartupItems.Sorting = System.Windows.Forms.SortOrder.Ascending;
             this.listViewStartupItems.TabIndex = 0;
             this.listViewStartupItems.UseCompatibleStateImageBehavior = false;
@@ -149,51 +148,50 @@ namespace StartupOrganizer
             this.toolStripMenuItemCopy,
             this.toolStripMenuItemDelete});
             this.contextMenuStrip.Name = "contextMenuStrip";
-            this.contextMenuStrip.Size = new System.Drawing.Size(143, 164);
+            this.contextMenuStrip.Size = new System.Drawing.Size(183, 224);
             this.contextMenuStrip.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.ContextMenuStrip_ItemClicked);
             // 
             // toolStripMenuItemDetails
             // 
             this.toolStripMenuItemDetails.Name = "toolStripMenuItemDetails";
-            this.toolStripMenuItemDetails.Size = new System.Drawing.Size(142, 32);
+            this.toolStripMenuItemDetails.Size = new System.Drawing.Size(182, 44);
             this.toolStripMenuItemDetails.Tag = "Details";
             this.toolStripMenuItemDetails.Text = "Details";
             // 
             // toolStripMenuItemEnable
             // 
             this.toolStripMenuItemEnable.Name = "toolStripMenuItemEnable";
-            this.toolStripMenuItemEnable.Size = new System.Drawing.Size(142, 32);
+            this.toolStripMenuItemEnable.Size = new System.Drawing.Size(182, 44);
             this.toolStripMenuItemEnable.Tag = "Enable";
             this.toolStripMenuItemEnable.Text = "Enable";
             // 
             // toolStripMenuItemDisable
             // 
             this.toolStripMenuItemDisable.Name = "toolStripMenuItemDisable";
-            this.toolStripMenuItemDisable.Size = new System.Drawing.Size(142, 32);
+            this.toolStripMenuItemDisable.Size = new System.Drawing.Size(182, 44);
             this.toolStripMenuItemDisable.Tag = "Disable";
             this.toolStripMenuItemDisable.Text = "Disable";
             // 
             // toolStripMenuItemCopy
             // 
             this.toolStripMenuItemCopy.Name = "toolStripMenuItemCopy";
-            this.toolStripMenuItemCopy.Size = new System.Drawing.Size(142, 32);
+            this.toolStripMenuItemCopy.Size = new System.Drawing.Size(182, 44);
             this.toolStripMenuItemCopy.Tag = "Copy";
             this.toolStripMenuItemCopy.Text = "Copy";
             // 
             // toolStripMenuItemDelete
             // 
             this.toolStripMenuItemDelete.Name = "toolStripMenuItemDelete";
-            this.toolStripMenuItemDelete.Size = new System.Drawing.Size(142, 32);
+            this.toolStripMenuItemDelete.Size = new System.Drawing.Size(182, 44);
             this.toolStripMenuItemDelete.Tag = "Delete";
             this.toolStripMenuItemDelete.Text = "Delete";
             // 
             // btnSave
             // 
             this.btnSave.Enabled = false;
-            this.btnSave.Location = new System.Drawing.Point(7, 7);
-            this.btnSave.Margin = new System.Windows.Forms.Padding(2);
+            this.btnSave.Location = new System.Drawing.Point(10, 10);
             this.btnSave.Name = "btnSave";
-            this.btnSave.Size = new System.Drawing.Size(94, 60);
+            this.btnSave.Size = new System.Drawing.Size(141, 89);
             this.btnSave.TabIndex = 1;
             this.btnSave.Text = "&Save";
             this.toolTip.SetToolTip(this.btnSave, "Save changes");
@@ -202,10 +200,9 @@ namespace StartupOrganizer
             // 
             // btnBackup
             // 
-            this.btnBackup.Location = new System.Drawing.Point(403, 7);
-            this.btnBackup.Margin = new System.Windows.Forms.Padding(2);
+            this.btnBackup.Location = new System.Drawing.Point(604, 10);
             this.btnBackup.Name = "btnBackup";
-            this.btnBackup.Size = new System.Drawing.Size(94, 60);
+            this.btnBackup.Size = new System.Drawing.Size(141, 89);
             this.btnBackup.TabIndex = 2;
             this.btnBackup.Text = "&Backup";
             this.toolTip.SetToolTip(this.btnBackup, "Backup all startup item configuration");
@@ -214,10 +211,9 @@ namespace StartupOrganizer
             // 
             // btnRestore
             // 
-            this.btnRestore.Location = new System.Drawing.Point(502, 7);
-            this.btnRestore.Margin = new System.Windows.Forms.Padding(2);
+            this.btnRestore.Location = new System.Drawing.Point(753, 10);
             this.btnRestore.Name = "btnRestore";
-            this.btnRestore.Size = new System.Drawing.Size(94, 60);
+            this.btnRestore.Size = new System.Drawing.Size(141, 89);
             this.btnRestore.TabIndex = 3;
             this.btnRestore.Text = "&Restore";
             this.toolTip.SetToolTip(this.btnRestore, "Restore a backup");
@@ -227,10 +223,9 @@ namespace StartupOrganizer
             // btnExit
             // 
             this.btnExit.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnExit.Location = new System.Drawing.Point(1195, 7);
-            this.btnExit.Margin = new System.Windows.Forms.Padding(2);
+            this.btnExit.Location = new System.Drawing.Point(1792, 10);
             this.btnExit.Name = "btnExit";
-            this.btnExit.Size = new System.Drawing.Size(94, 60);
+            this.btnExit.Size = new System.Drawing.Size(141, 89);
             this.btnExit.TabIndex = 4;
             this.btnExit.Text = "E&xit";
             this.toolTip.SetToolTip(this.btnExit, "Exit the Startup Organizer application");
@@ -239,10 +234,9 @@ namespace StartupOrganizer
             // 
             // btnLoad
             // 
-            this.btnLoad.Location = new System.Drawing.Point(106, 7);
-            this.btnLoad.Margin = new System.Windows.Forms.Padding(2);
+            this.btnLoad.Location = new System.Drawing.Point(159, 10);
             this.btnLoad.Name = "btnLoad";
-            this.btnLoad.Size = new System.Drawing.Size(94, 60);
+            this.btnLoad.Size = new System.Drawing.Size(141, 89);
             this.btnLoad.TabIndex = 5;
             this.btnLoad.Text = "Re&load";
             this.toolTip.SetToolTip(this.btnLoad, "Reload startup items");
@@ -251,10 +245,9 @@ namespace StartupOrganizer
             // 
             // btnAdd
             // 
-            this.btnAdd.Location = new System.Drawing.Point(205, 7);
-            this.btnAdd.Margin = new System.Windows.Forms.Padding(2);
+            this.btnAdd.Location = new System.Drawing.Point(308, 10);
             this.btnAdd.Name = "btnAdd";
-            this.btnAdd.Size = new System.Drawing.Size(94, 60);
+            this.btnAdd.Size = new System.Drawing.Size(141, 89);
             this.btnAdd.TabIndex = 6;
             this.btnAdd.Text = "&Add";
             this.toolTip.SetToolTip(this.btnAdd, "Add new startup item");
@@ -263,10 +256,9 @@ namespace StartupOrganizer
             // 
             // btnDelete
             // 
-            this.btnDelete.Location = new System.Drawing.Point(304, 7);
-            this.btnDelete.Margin = new System.Windows.Forms.Padding(2);
+            this.btnDelete.Location = new System.Drawing.Point(456, 10);
             this.btnDelete.Name = "btnDelete";
-            this.btnDelete.Size = new System.Drawing.Size(94, 60);
+            this.btnDelete.Size = new System.Drawing.Size(141, 89);
             this.btnDelete.TabIndex = 7;
             this.btnDelete.Text = "Delete";
             this.toolTip.SetToolTip(this.btnDelete, "Delete selected startup items");
@@ -275,10 +267,9 @@ namespace StartupOrganizer
             // 
             // btnBrowse
             // 
-            this.btnBrowse.Location = new System.Drawing.Point(601, 7);
-            this.btnBrowse.Margin = new System.Windows.Forms.Padding(2);
+            this.btnBrowse.Location = new System.Drawing.Point(902, 10);
             this.btnBrowse.Name = "btnBrowse";
-            this.btnBrowse.Size = new System.Drawing.Size(94, 60);
+            this.btnBrowse.Size = new System.Drawing.Size(141, 89);
             this.btnBrowse.TabIndex = 8;
             this.btnBrowse.Text = "&Browse";
             this.toolTip.SetToolTip(this.btnBrowse, "Browse file system or registry for selected item");
@@ -287,10 +278,9 @@ namespace StartupOrganizer
             // 
             // btnDetails
             // 
-            this.btnDetails.Location = new System.Drawing.Point(700, 7);
-            this.btnDetails.Margin = new System.Windows.Forms.Padding(2);
+            this.btnDetails.Location = new System.Drawing.Point(1050, 10);
             this.btnDetails.Name = "btnDetails";
-            this.btnDetails.Size = new System.Drawing.Size(94, 60);
+            this.btnDetails.Size = new System.Drawing.Size(141, 89);
             this.btnDetails.TabIndex = 9;
             this.btnDetails.Text = "&Details";
             this.toolTip.SetToolTip(this.btnDetails, "Display details for selected startup item");
@@ -299,10 +289,9 @@ namespace StartupOrganizer
             // 
             // btnEnable
             // 
-            this.btnEnable.Location = new System.Drawing.Point(799, 7);
-            this.btnEnable.Margin = new System.Windows.Forms.Padding(2);
+            this.btnEnable.Location = new System.Drawing.Point(1198, 10);
             this.btnEnable.Name = "btnEnable";
-            this.btnEnable.Size = new System.Drawing.Size(94, 60);
+            this.btnEnable.Size = new System.Drawing.Size(141, 89);
             this.btnEnable.TabIndex = 10;
             this.btnEnable.Text = "&Enable";
             this.toolTip.SetToolTip(this.btnEnable, "Enable selected startup items");
@@ -311,10 +300,9 @@ namespace StartupOrganizer
             // 
             // btnDisable
             // 
-            this.btnDisable.Location = new System.Drawing.Point(898, 7);
-            this.btnDisable.Margin = new System.Windows.Forms.Padding(2);
+            this.btnDisable.Location = new System.Drawing.Point(1347, 10);
             this.btnDisable.Name = "btnDisable";
-            this.btnDisable.Size = new System.Drawing.Size(94, 60);
+            this.btnDisable.Size = new System.Drawing.Size(141, 89);
             this.btnDisable.TabIndex = 11;
             this.btnDisable.Text = "Disable";
             this.toolTip.SetToolTip(this.btnDisable, "Disable selected startup items");
@@ -323,10 +311,9 @@ namespace StartupOrganizer
             // 
             // btnSetup
             // 
-            this.btnSetup.Location = new System.Drawing.Point(1096, 7);
-            this.btnSetup.Margin = new System.Windows.Forms.Padding(2);
+            this.btnSetup.Location = new System.Drawing.Point(1644, 10);
             this.btnSetup.Name = "btnSetup";
-            this.btnSetup.Size = new System.Drawing.Size(94, 60);
+            this.btnSetup.Size = new System.Drawing.Size(141, 89);
             this.btnSetup.TabIndex = 12;
             this.btnSetup.Text = "Settings";
             this.toolTip.SetToolTip(this.btnSetup, "Show Startup Organizer settings");
@@ -335,10 +322,9 @@ namespace StartupOrganizer
             // 
             // btnCopy
             // 
-            this.btnCopy.Location = new System.Drawing.Point(997, 7);
-            this.btnCopy.Margin = new System.Windows.Forms.Padding(2);
+            this.btnCopy.Location = new System.Drawing.Point(1496, 10);
             this.btnCopy.Name = "btnCopy";
-            this.btnCopy.Size = new System.Drawing.Size(94, 60);
+            this.btnCopy.Size = new System.Drawing.Size(141, 89);
             this.btnCopy.TabIndex = 13;
             this.btnCopy.Text = "Copy";
             this.toolTip.SetToolTip(this.btnCopy, "Copy selected startup item details to the clipboard");
@@ -356,9 +342,9 @@ namespace StartupOrganizer
             // 
             // MainForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(10F, 25F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(15F, 37F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1295, 790);
+            this.ClientSize = new System.Drawing.Size(1942, 1169);
             this.Controls.Add(this.btnCopy);
             this.Controls.Add(this.btnSetup);
             this.Controls.Add(this.btnDisable);
@@ -374,7 +360,6 @@ namespace StartupOrganizer
             this.Controls.Add(this.btnSave);
             this.Controls.Add(this.listViewStartupItems);
             this.DoubleBuffered = true;
-            this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "MainForm";
             this.Text = "Startup Organizer";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);

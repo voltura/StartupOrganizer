@@ -20,22 +20,22 @@ namespace StartupOrganizer
 
         private readonly List<StartupItem> m_StartupItems;
         private readonly AddForm m_AddForm = new();
-        private LoadingForm m_LoadingForm = new();
+        private readonly LoadingForm m_LoadingForm = new();
 
-        internal bool ChangesMade
+        internal bool UnsavedChanges
         {
             get
             {
-                return m_ChangesMade;
+                return m_UnsavedChanges;
             }
             set
             {
-                m_ChangesMade = value;
-                btnSave.Enabled = m_ChangesMade;
+                m_UnsavedChanges = value;
+                btnSave.Enabled = m_UnsavedChanges;
             }
         }
 
-        private bool m_ChangesMade;
+        private bool m_UnsavedChanges;
 
         #endregion Private variables
 
@@ -218,6 +218,7 @@ START regedit.exe";
                 StartupItem itemToAdd = m_AddForm.StartupItemToAdd;
                 FillFileDetails(itemToAdd.FullPath, ref itemToAdd);
                 m_StartupItems.Add(itemToAdd);
+                UnsavedChanges = true;
                 LoadStartupItems(true, @"Updating Startup Item list
 Please stand by...");
             }
@@ -242,6 +243,7 @@ Please stand by...");
                     }
                 }
             }
+            UnsavedChanges = false;
         }
 
         private void SaveStartupItemUwp()
@@ -433,6 +435,7 @@ Write-Host $v";
                     FileInfo tfi = new(targetFile);
                     startupItem.Folder = tfi.Directory.FullName;
                     startupItem.File = tfi.Name;
+                    startupItem.Parameters = string.Empty;
                     FillFileDetails(targetFile, ref startupItem);
                     if (string.IsNullOrEmpty(startupItem.ProductName))
                         startupItem.ProductName = startupItem.File;
@@ -678,7 +681,7 @@ Write-Host $v";
                 };
                 string publisherAndCompany = string.IsNullOrWhiteSpace(startupItem.CompanyName) || startupItem.CompanyName == startupItem.Publisher ?
                     $"{startupItem.Publisher}" : $"{startupItem.CompanyName} ({startupItem.Publisher})";
-                string[] row = { publisherAndCompany, startupItem.File, startupItem.Parameters,
+                string[] row = { publisherAndCompany, startupItem.File, string.IsNullOrEmpty(startupItem.Parameters) ? "" : startupItem.Parameters,
                     startupItem.PartOfOS ? " YES " : " NO ", startupItem.Enabled ? "Enabled" : "Disabled",
                     startupItem.Type.ToString() };
                 listViewItem.SubItems.AddRange(row);
@@ -835,7 +838,7 @@ Write-Host $v";
                     LoadStartupItemsFromStartupFolders();
                     GetStartupItemsFromUWP();
                 }
-                ChangesMade = userAddedItem;
+                UnsavedChanges = userAddedItem;
                 PopulateListView();
             }
             finally
