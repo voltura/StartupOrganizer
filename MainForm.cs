@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 #endregion Using statements
@@ -76,6 +77,8 @@ namespace StartupOrganizer
 
         private readonly List<StartupItem> m_StartupItems;
         private readonly AddForm m_AddForm = new();
+        private LoadingForm m_LoadingForm = new();
+
         internal bool ChangesMade
         {
             get
@@ -107,19 +110,28 @@ namespace StartupOrganizer
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-            LoadStartupItems();
+            LoadStartupItems(false, @"Loading Startup Organizer
+Please stand by...");
+            Tag = "Loaded";
         }
 
         private void Load_Click(object sender, EventArgs e)
         {
-            bool unsavedChanges = m_StartupItems.Contains(new StartupItem { State = StartupItem.MODIFIED_STATE.MODIFIED | StartupItem.MODIFIED_STATE.NEW });
-            if (unsavedChanges && DialogResult.No == MessageBox.Show(this, "Unsaved changes will be lost", "Continue?", MessageBoxButtons.YesNo)) return;
-            LoadStartupItems();
+            if (UserConfirmedPerformOperation()) 
+                LoadStartupItems(false, @"Loading Startup Items
+Please stand by...");
         }
 
         private void Exit_Click(object sender, EventArgs e)
         {
             Application.Exit();
+        }
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (!UserConfirmedPerformOperation())
+            {
+                e.Cancel = true;
+            }
         }
 
         private void Details_Click(object sender, EventArgs e)
@@ -180,6 +192,13 @@ namespace StartupOrganizer
 
         #region Private methods
 
+        private bool UserConfirmedPerformOperation()
+        {
+            bool unsavedChanges = m_StartupItems.Contains(new StartupItem { State = StartupItem.MODIFIED_STATE.MODIFIED | StartupItem.MODIFIED_STATE.NEW });
+            if (unsavedChanges && DialogResult.No == MessageBox.Show(this, "Unsaved changes will be lost", "Continue?", MessageBoxButtons.YesNo)) return false;
+            return true;
+        }
+
         private void BrowseItem()
         {
             if (listViewStartupItems.SelectedItems is null) return;
@@ -234,7 +253,8 @@ START regedit.exe";
                 StartupItem itemToAdd = m_AddForm.StartupItemToAdd;
                 FillFileDetails(itemToAdd.FullPath, ref itemToAdd);
                 m_StartupItems.Add(itemToAdd);
-                LoadStartupItems(true);
+                LoadStartupItems(true, @"Updating Startup Item list
+Please stand by...");
             }
         }
         private void SaveStartupItems()
@@ -834,20 +854,29 @@ Write-Host $v";
             m_StartupItems.Clear();
         }
 
-        private void LoadStartupItems(bool userAddedItem = false)
+        private void LoadStartupItems(bool userAddedItem = false, string loadingText = "")
         {
-            if (!userAddedItem)
+            try
             {
-                CleanLoadedStartupItems();
-                LoadStartupItemsFromRegistry(Constants.REG_ROOT.HKCU, false);
-                LoadStartupItemsFromRegistry(Constants.REG_ROOT.HKCU, true);
-                LoadStartupItemsFromRegistry(Constants.REG_ROOT.HKLM, false);
-                LoadStartupItemsFromRegistry(Constants.REG_ROOT.HKLM, true);
-                LoadStartupItemsFromStartupFolders();
-                GetStartupItemsFromUWP();
+                m_LoadingForm.SetText(this, loadingText);
+                m_LoadingForm.Show(this);
+                if (!userAddedItem)
+                {
+                    CleanLoadedStartupItems();
+                    LoadStartupItemsFromRegistry(Constants.REG_ROOT.HKCU, false);
+                    LoadStartupItemsFromRegistry(Constants.REG_ROOT.HKCU, true);
+                    LoadStartupItemsFromRegistry(Constants.REG_ROOT.HKLM, false);
+                    LoadStartupItemsFromRegistry(Constants.REG_ROOT.HKLM, true);
+                    LoadStartupItemsFromStartupFolders();
+                    GetStartupItemsFromUWP();
+                }
+                ChangesMade = userAddedItem;
+                PopulateListView();
             }
-            ChangesMade = userAddedItem;
-            PopulateListView();
+            finally
+            {
+                m_LoadingForm.Hide();
+            }
         }
 
         private void EnableStartupItems()

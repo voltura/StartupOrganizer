@@ -347,12 +347,17 @@ namespace StartupOrganizer
             // 
             // toolTip
             // 
-            this.toolTip.AutoPopDelay = 5000;
-            this.toolTip.InitialDelay = 500;
+            this.toolTip.AutomaticDelay = 0;
+            this.toolTip.AutoPopDelay = 0;
+            this.toolTip.BackColor = System.Drawing.Color.Goldenrod;
+            this.toolTip.ForeColor = System.Drawing.Color.White;
+            this.toolTip.InitialDelay = 1000;
             this.toolTip.IsBalloon = true;
-            this.toolTip.ReshowDelay = 500;
+            this.toolTip.ReshowDelay = 0;
             this.toolTip.ShowAlways = true;
             this.toolTip.ToolTipIcon = System.Windows.Forms.ToolTipIcon.Info;
+            this.toolTip.UseAnimation = false;
+            this.toolTip.UseFading = false;
             // 
             // MainForm
             // 
@@ -377,6 +382,7 @@ namespace StartupOrganizer
             this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "MainForm";
             this.Text = "Startup Organizer";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.contextMenuStrip.ResumeLayout(false);
             this.ResumeLayout(false);
