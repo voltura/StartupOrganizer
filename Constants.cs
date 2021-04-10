@@ -22,5 +22,13 @@
         {
             HKLM, HKCU
         }
+
+        public enum FILE_TYPE
+        {
+            EXECUTABLE,
+            SHORTCUT,
+            DLL,
+            OTHER
+        }
     }
 }

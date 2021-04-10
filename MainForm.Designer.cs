@@ -40,6 +40,12 @@ namespace StartupOrganizer
             this.columnHeaderOS = new System.Windows.Forms.ColumnHeader();
             this.columnHeaderStatus = new System.Windows.Forms.ColumnHeader();
             this.columnHeaderType = new System.Windows.Forms.ColumnHeader();
+            this.contextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.toolStripMenuItemDetails = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItemEnable = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItemDisable = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItemCopy = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItemDelete = new System.Windows.Forms.ToolStripMenuItem();
             this.btnSave = new System.Windows.Forms.Button();
             this.btnBackup = new System.Windows.Forms.Button();
             this.btnRestore = new System.Windows.Forms.Button();
@@ -54,6 +60,7 @@ namespace StartupOrganizer
             this.btnSetup = new System.Windows.Forms.Button();
             this.btnCopy = new System.Windows.Forms.Button();
             this.toolTip = new System.Windows.Forms.ToolTip(this.components);
+            this.contextMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
             // listViewStartupItems
@@ -69,6 +76,7 @@ namespace StartupOrganizer
             this.columnHeaderOS,
             this.columnHeaderStatus,
             this.columnHeaderType});
+            this.listViewStartupItems.ContextMenuStrip = this.contextMenuStrip;
             this.listViewStartupItems.FullRowSelect = true;
             this.listViewStartupItems.GridLines = true;
             listViewGroup1.CollapsedState = System.Windows.Forms.ListViewGroupCollapsedState.Expanded;
@@ -130,6 +138,54 @@ namespace StartupOrganizer
             // 
             this.columnHeaderType.Text = "Type";
             this.columnHeaderType.Width = 120;
+            // 
+            // contextMenuStrip
+            // 
+            this.contextMenuStrip.ImageScalingSize = new System.Drawing.Size(24, 24);
+            this.contextMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripMenuItemDetails,
+            this.toolStripMenuItemEnable,
+            this.toolStripMenuItemDisable,
+            this.toolStripMenuItemCopy,
+            this.toolStripMenuItemDelete});
+            this.contextMenuStrip.Name = "contextMenuStrip";
+            this.contextMenuStrip.Size = new System.Drawing.Size(143, 164);
+            this.contextMenuStrip.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.ContextMenuStrip_ItemClicked);
+            // 
+            // toolStripMenuItemDetails
+            // 
+            this.toolStripMenuItemDetails.Name = "toolStripMenuItemDetails";
+            this.toolStripMenuItemDetails.Size = new System.Drawing.Size(142, 32);
+            this.toolStripMenuItemDetails.Tag = "Details";
+            this.toolStripMenuItemDetails.Text = "Details";
+            // 
+            // toolStripMenuItemEnable
+            // 
+            this.toolStripMenuItemEnable.Name = "toolStripMenuItemEnable";
+            this.toolStripMenuItemEnable.Size = new System.Drawing.Size(142, 32);
+            this.toolStripMenuItemEnable.Tag = "Enable";
+            this.toolStripMenuItemEnable.Text = "Enable";
+            // 
+            // toolStripMenuItemDisable
+            // 
+            this.toolStripMenuItemDisable.Name = "toolStripMenuItemDisable";
+            this.toolStripMenuItemDisable.Size = new System.Drawing.Size(142, 32);
+            this.toolStripMenuItemDisable.Tag = "Disable";
+            this.toolStripMenuItemDisable.Text = "Disable";
+            // 
+            // toolStripMenuItemCopy
+            // 
+            this.toolStripMenuItemCopy.Name = "toolStripMenuItemCopy";
+            this.toolStripMenuItemCopy.Size = new System.Drawing.Size(142, 32);
+            this.toolStripMenuItemCopy.Tag = "Copy";
+            this.toolStripMenuItemCopy.Text = "Copy";
+            // 
+            // toolStripMenuItemDelete
+            // 
+            this.toolStripMenuItemDelete.Name = "toolStripMenuItemDelete";
+            this.toolStripMenuItemDelete.Size = new System.Drawing.Size(142, 32);
+            this.toolStripMenuItemDelete.Tag = "Delete";
+            this.toolStripMenuItemDelete.Text = "Delete";
             // 
             // btnSave
             // 
@@ -322,6 +378,7 @@ namespace StartupOrganizer
             this.Name = "MainForm";
             this.Text = "Startup Organizer";
             this.Load += new System.EventHandler(this.MainForm_Load);
+            this.contextMenuStrip.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -350,6 +407,12 @@ namespace StartupOrganizer
         private System.Windows.Forms.Button btnSetup;
         private System.Windows.Forms.Button btnCopy;
         private System.Windows.Forms.ToolTip toolTip;
+        private System.Windows.Forms.ContextMenuStrip contextMenuStrip;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemDetails;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemEnable;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemDisable;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemDelete;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemCopy;
     }
 }
 

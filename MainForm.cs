@@ -232,8 +232,7 @@ START regedit.exe";
             if (DialogResult.OK == m_AddForm.ShowDialog(this))
             {
                 StartupItem itemToAdd = m_AddForm.StartupItemToAdd;
-                FillFileDetails(Path.Combine(itemToAdd.Folder, itemToAdd.File),
-                    ref itemToAdd);
+                FillFileDetails(itemToAdd.FullPath, ref itemToAdd);
                 m_StartupItems.Add(itemToAdd);
                 LoadStartupItems(true);
             }
@@ -418,6 +417,18 @@ Write-Host $v";
             return output;
         }
 
+        private static void SetFileType(FileInfo fi, ref StartupItem startupItem)
+        {
+            if (fi == null) return;
+            startupItem.FileType = fi.Extension.ToLower() switch
+            {
+                ".exe" => Constants.FILE_TYPE.EXECUTABLE,
+                ".lnk" => Constants.FILE_TYPE.SHORTCUT,
+                ".dll" => Constants.FILE_TYPE.DLL,
+                _ => Constants.FILE_TYPE.OTHER,
+            };
+        }
+
         private void GetStartupItemsFromFolder(string folder, int group)
         {
             foreach (string file in Directory.GetFiles(folder))
@@ -428,11 +439,11 @@ Write-Host $v";
                 startupItem.ID = m_StartupItems.Count + 1;
                 startupItem.GroupIndex = group;
                 startupItem.ValueName = fi.Name;
-                if (fi.Extension.ToLower() == ".lnk")
+                SetFileType(fi, ref startupItem);
+                if (startupItem.FileType == Constants.FILE_TYPE.SHORTCUT)
                 {
                     startupItem.LinkFolder = fi.Directory.FullName;
                     startupItem.LinkName = fi.Name;
-
                     string targetFile = GetShortcutTarget(file);
                     FileInfo tfi = new(targetFile);
                     startupItem.Folder = tfi.Directory.FullName;
@@ -440,8 +451,6 @@ Write-Host $v";
                     FillFileDetails(targetFile, ref startupItem);
                     if (string.IsNullOrEmpty(startupItem.ProductName))
                         startupItem.ProductName = startupItem.File;
-                    if (string.IsNullOrEmpty(startupItem.Parameters))
-                        startupItem.Parameters = "(shortcut)";
                 }
                 else
                 {
@@ -549,6 +558,7 @@ Write-Host $v";
                     // example C:\Windows\system32\rundll32.exe C:\Windows\System32\LogiLDA.dll,LogiFetch
                     string runDllFile = runValueData.Split(' ', StringSplitOptions.RemoveEmptyEntries & StringSplitOptions.TrimEntries)[0];
                     string runDllParameters = runValueData[runDllFile.Length..].Trim();
+                    runDllFile = runDllFile.Trim('"');
                     FileInfo fileInfo = new(runDllFile);
                     if (fileInfo != null && fileInfo.Directory.FullName.Equals(Environment.GetFolderPath(Environment.SpecialFolder.System), StringComparison.InvariantCultureIgnoreCase) || 
                         fileInfo.Directory.FullName.Equals(Environment.GetFolderPath(Environment.SpecialFolder.SystemX86), StringComparison.InvariantCultureIgnoreCase)) {
@@ -568,20 +578,21 @@ Write-Host $v";
                     else
                     {
                         // no parameters
-                        fileAndPath = runDllParameters;
+                        fileAndPath = runDllParameters.Trim('"');
                     }
                 }
                 else if (
                     (runValueData.Trim().Contains("rundll32", StringComparison.InvariantCultureIgnoreCase) && (
-                            runValueData.Trim().StartsWith(Environment.GetFolderPath(Environment.SpecialFolder.System)) ||
-                            runValueData.Trim().StartsWith(Environment.GetFolderPath(Environment.SpecialFolder.SystemX86))
-                        )) || runValueData.Trim().StartsWith("rundll32", StringComparison.InvariantCultureIgnoreCase)
+                            runValueData.Trim().Trim('"').StartsWith(Environment.GetFolderPath(Environment.SpecialFolder.System)) ||
+                            runValueData.Trim().Trim('"').StartsWith(Environment.GetFolderPath(Environment.SpecialFolder.SystemX86))
+                        )) || runValueData.Trim().Trim('"').StartsWith("rundll32", StringComparison.InvariantCultureIgnoreCase)
                     ) // could be a file executed by rundll32.exe
                 {
                     // example rundll32 C:\Windows\System32\LogiLDA.dll,LogiFetch
                     string runDllFile = runValueData.Split(' ', StringSplitOptions.RemoveEmptyEntries & StringSplitOptions.TrimEntries)[0];
                     string runDllParameters = runValueData[runDllFile.Length..].Trim();
-                    FileInfo fileInfo = new(runDllFile + ".exe"); // TODO: Check if rundll32 is accessable via PATH and add directory here
+                    runDllFile = runDllFile.Trim('"');
+                    FileInfo fileInfo = new(runDllFile + ".exe"); // TODO: Check if rundll32 is accessable via PATH and add directory part from path here
                     if (fileInfo != null && 
                         fileInfo.Directory.FullName.Equals(Environment.GetFolderPath(Environment.SpecialFolder.System), StringComparison.InvariantCultureIgnoreCase) ||
                         fileInfo.Directory.FullName.Equals(Environment.GetFolderPath(Environment.SpecialFolder.SystemX86), StringComparison.InvariantCultureIgnoreCase))
@@ -602,7 +613,7 @@ Write-Host $v";
                     else
                     {
                         // no parameters
-                        fileAndPath = runDllParameters;
+                        fileAndPath = runDllParameters.Trim('"');
                     }
                 }
                 else
@@ -627,12 +638,12 @@ Write-Host $v";
                     if (fileAndPath.Contains('\\'))
                     {
                         startupItem.Folder = fileAndPath[..fileAndPath.LastIndexOf('\\')];
-                        startupItem.File = fileAndPath[(fileAndPath.LastIndexOf('\\') + 1)..];
+                        startupItem.File = fileAndPath.Length > fileAndPath.LastIndexOf('\\') + 1 ? fileAndPath[(fileAndPath.LastIndexOf('\\') + 1)..] : fileAndPath;
                     } 
                     else if (fileAndPath.Contains('/'))
                     {
                         startupItem.Folder = fileAndPath[..fileAndPath.LastIndexOf('/')];
-                        startupItem.File = fileAndPath[(fileAndPath.LastIndexOf('/') + 1)..];
+                        startupItem.File = fileAndPath.Length > fileAndPath.LastIndexOf('/') + 1 ? fileAndPath[(fileAndPath.LastIndexOf('/') + 1)..] : fileAndPath;
                     }
                     else
                     {
@@ -734,10 +745,11 @@ Write-Host $v";
             startupItem.FileVersion = fileVersionInfo.FileVersion;
             if (startupItem.Publisher.Equals(Constants.UNKNOWN))
             {
-                startupItem.Publisher = string.IsNullOrEmpty(fileVersionInfo.CompanyName) ? Constants.UNKNOWN : fileVersionInfo.CompanyName;
+                startupItem.Publisher = string.IsNullOrWhiteSpace(fileVersionInfo.CompanyName) ? Constants.UNKNOWN : fileVersionInfo.CompanyName;
             }
             startupItem.CompanyName = string.IsNullOrWhiteSpace(fileVersionInfo.CompanyName) ? startupItem.Publisher : fileVersionInfo.CompanyName;
             FileInfo fi = new(fileName);
+            SetFileType(fi, ref startupItem);
             if (fi != null)
             {
                 CompilationMode mode = GetCompilationMode(fi);
@@ -859,5 +871,27 @@ Write-Host $v";
         }
 
         #endregion Private methods
+
+        private void ContextMenuStrip_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+            switch (e.ClickedItem.Tag)
+            {
+                case "Details":
+                    ShowDetails();
+                    break;
+                case "Delete":
+                    DeleteStartupItems();
+                    break;
+                case "Enable":
+                    EnableStartupItems();
+                    break;
+                case "Disable":
+                    DisableStartupItems();
+                    break;
+                case "Copy":
+                    CopyItemDetailsToClipboard();
+                    break;
+            }
+        }
     }
 }

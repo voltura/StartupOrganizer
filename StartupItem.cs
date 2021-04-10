@@ -32,6 +32,7 @@ namespace StartupOrganizer
         public string Parameters { get; set; }
         public string ProductVersion { get; set; }
         public string FileVersion { get; set; }
+        public Constants.FILE_TYPE FileType { get; set; }
         public bool PartOfOS { get; set; }
         public bool Enabled { get; set; }
         public string LinkName { get; set; }
@@ -111,7 +112,8 @@ namespace StartupOrganizer
                 Type.GetHashCode() ^
                 State.GetHashCode() ^
                 FileDescription.GetHashCode() ^
-                StartedWithRunDLL.GetHashCode();
+                StartedWithRunDLL.GetHashCode() ^
+                FileType.GetHashCode();
         }
     }
 }
