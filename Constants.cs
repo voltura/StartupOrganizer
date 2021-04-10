@@ -16,6 +16,7 @@
         internal const string APPROVED_RUN_SUBKEY_REG = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run";
         internal const string APPROVED_RUN_SUBKEY_REG32 = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run32";
         internal const string APPROVED_STARTUP_FOLDER_SUBKEY_REG = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder";
+        internal const string WINDOWS_OS_PRODUCT_NAME = @"Microsoft® Windows® Operating System";
 
         public enum REG_ROOT
         {

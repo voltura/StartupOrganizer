@@ -232,7 +232,7 @@ START regedit.exe";
             if (DialogResult.OK == m_AddForm.ShowDialog(this))
             {
                 StartupItem itemToAdd = m_AddForm.StartupItemToAdd;
-                FillFileDetails(Path.Combine(itemToAdd.Folder, itemToAdd.Executable),
+                FillFileDetails(Path.Combine(itemToAdd.Folder, itemToAdd.File),
                     ref itemToAdd);
                 m_StartupItems.Add(itemToAdd);
                 LoadStartupItems(true);
@@ -274,11 +274,11 @@ START regedit.exe";
         {
             using RegistryKey root = item.RegRoot == Constants.REG_ROOT.HKCU ? Registry.CurrentUser : Registry.LocalMachine;
             using RegistryKey hkcuRun = root.OpenSubKey(Constants.RUN_SUBKEY_REG, true);
-            hkcuRun.SetValue(item.Name, item.ValueData);
+            hkcuRun.SetValue(item.ProductName, item.ValueData);
             if (!item.Enabled)
             {
                 using RegistryKey allowedRun = root.OpenSubKey(item.Folder.Contains(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86)) ? Constants.APPROVED_RUN_SUBKEY_REG32 : Constants.APPROVED_RUN_SUBKEY_REG, true);
-                allowedRun.SetValue(item.Name,
+                allowedRun.SetValue(item.ProductName,
                     new byte[] { 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
                     RegistryValueKind.Binary);
             }
@@ -321,10 +321,10 @@ START regedit.exe";
                         startupItem.ValueName = app.Name;
                         startupItem.Folder = app.Folder;
                         startupItem.Publisher = app.ID.Substring(0, app.ID.IndexOf('.') != -1 ? app.ID.IndexOf('.') : app.ID.Length);
-                        startupItem.Executable = app.Executable;
+                        startupItem.File = app.Executable;
                         startupItem.Enabled = !(state == "0" || state == "1");
                         startupItem.Parameters = string.Empty;
-                        startupItem.Name = app.Name;
+                        startupItem.ProductName = app.Name;
                         startupItem.Type = StartupItem.TYPE.UWP;
                         m_StartupItems.Add(startupItem);
                     }
@@ -436,17 +436,17 @@ Write-Host $v";
                     string targetFile = GetShortcutTarget(file);
                     FileInfo tfi = new(targetFile);
                     startupItem.Folder = tfi.Directory.FullName;
-                    startupItem.Executable = tfi.Name;
+                    startupItem.File = tfi.Name;
                     FillFileDetails(targetFile, ref startupItem);
-                    if (string.IsNullOrEmpty(startupItem.Name))
-                        startupItem.Name = startupItem.Executable;
+                    if (string.IsNullOrEmpty(startupItem.ProductName))
+                        startupItem.ProductName = startupItem.File;
                     if (string.IsNullOrEmpty(startupItem.Parameters))
                         startupItem.Parameters = "(shortcut)";
                 }
                 else
                 {
                     startupItem.Folder = fi.Directory.FullName;
-                    startupItem.Executable = fi.Name;
+                    startupItem.File = fi.Name;
                     FillFileDetails(file, ref startupItem);
                 }
                 // check if enabled or disabled
@@ -540,21 +540,112 @@ Write-Host $v";
                 object valueDataObject = regKeyRun.GetValue(runValueName, string.Empty);
                 string runValueData = Convert.ToString(valueDataObject ?? string.Empty);
                 string[] pathAndParams;
-                if (runValueData.Contains('"'))
-                    pathAndParams = runValueData.Split('"', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                else if (runValueData.Contains('/'))
-                    pathAndParams = new string[] { runValueData.Substring(0, runValueData.IndexOf('/') - 1).Trim(), runValueData[runValueData.IndexOf('/')..].Trim() };
+                string parameters = string.Empty;
+                string fileAndPath = string.Empty;
+                bool isWindowsRunDll = false;
+                if (runValueData.Contains("rundll32.exe", StringComparison.InvariantCultureIgnoreCase)) // can be multitude of files executed here, see https://www.computerhope.com/issues/ch000570.htm
+                {
+                    // it is a file executed via rundll32.exe
+                    // example C:\Windows\system32\rundll32.exe C:\Windows\System32\LogiLDA.dll,LogiFetch
+                    string runDllFile = runValueData.Split(' ', StringSplitOptions.RemoveEmptyEntries & StringSplitOptions.TrimEntries)[0];
+                    string runDllParameters = runValueData[runDllFile.Length..].Trim();
+                    FileInfo fileInfo = new(runDllFile);
+                    if (fileInfo != null && fileInfo.Directory.FullName.Equals(Environment.GetFolderPath(Environment.SpecialFolder.System), StringComparison.InvariantCultureIgnoreCase) || 
+                        fileInfo.Directory.FullName.Equals(Environment.GetFolderPath(Environment.SpecialFolder.SystemX86), StringComparison.InvariantCultureIgnoreCase)) {
+                        // the rundll32.exe file resides in Windows directory, most likely it is the real rundll32.exe file
+                        FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(runDllFile);
+                        if (fileVersionInfo != null && fileVersionInfo.ProductName == Constants.WINDOWS_OS_PRODUCT_NAME)
+                        {
+                            isWindowsRunDll = true;
+                        }
+                    }
+                    if (runDllParameters.Contains(','))
+                    {
+                        // has parameters
+                        parameters = runDllParameters.Length > (runDllParameters.IndexOf(',') + 1) ? runDllParameters[(runDllParameters.IndexOf(',') + 1)..] : string.Empty;
+                        fileAndPath = runDllParameters[..runDllParameters.IndexOf(',')];
+                    }
+                    else
+                    {
+                        // no parameters
+                        fileAndPath = runDllParameters;
+                    }
+                }
+                else if (
+                    (runValueData.Trim().Contains("rundll32", StringComparison.InvariantCultureIgnoreCase) && (
+                            runValueData.Trim().StartsWith(Environment.GetFolderPath(Environment.SpecialFolder.System)) ||
+                            runValueData.Trim().StartsWith(Environment.GetFolderPath(Environment.SpecialFolder.SystemX86))
+                        )) || runValueData.Trim().StartsWith("rundll32", StringComparison.InvariantCultureIgnoreCase)
+                    ) // could be a file executed by rundll32.exe
+                {
+                    // example rundll32 C:\Windows\System32\LogiLDA.dll,LogiFetch
+                    string runDllFile = runValueData.Split(' ', StringSplitOptions.RemoveEmptyEntries & StringSplitOptions.TrimEntries)[0];
+                    string runDllParameters = runValueData[runDllFile.Length..].Trim();
+                    FileInfo fileInfo = new(runDllFile + ".exe"); // TODO: Check if rundll32 is accessable via PATH and add directory here
+                    if (fileInfo != null && 
+                        fileInfo.Directory.FullName.Equals(Environment.GetFolderPath(Environment.SpecialFolder.System), StringComparison.InvariantCultureIgnoreCase) ||
+                        fileInfo.Directory.FullName.Equals(Environment.GetFolderPath(Environment.SpecialFolder.SystemX86), StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        // the rundll32.exe file resides in Windows directory, most likely it is the real rundll32.exe file
+                        FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(runDllFile);
+                        if (fileVersionInfo != null && fileVersionInfo.ProductName == Constants.WINDOWS_OS_PRODUCT_NAME)
+                        {
+                            isWindowsRunDll = true;
+                        }
+                    }
+                    if (runDllParameters.Contains(','))
+                    {
+                        // has parameters
+                        parameters = runDllParameters.Length > (runDllParameters.IndexOf(',') + 1) ? runDllParameters[(runDllParameters.IndexOf(',') + 1)..] : string.Empty;
+                        fileAndPath = runDllParameters[..runDllParameters.IndexOf(',')];
+                    }
+                    else
+                    {
+                        // no parameters
+                        fileAndPath = runDllParameters;
+                    }
+                }
                 else
-                    pathAndParams = new string[] { runValueData.Trim() };
-                string parameters = pathAndParams != null ? (pathAndParams.Length > 1 ? pathAndParams?[1] : string.Empty) : string.Empty;
-                string exeAndPath = pathAndParams != null ? pathAndParams?[0] : string.Empty;
-                FileInfo fi = File.Exists(exeAndPath) ? new(exeAndPath) : null;
+                {
+                    if (runValueData.Contains('"'))
+                        pathAndParams = runValueData.Split('"', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                    else if (runValueData.Contains('/'))
+                        pathAndParams = new string[] { runValueData.Substring(0, runValueData.IndexOf('/') - 1).Trim(),
+                        runValueData[runValueData.IndexOf('/')..].Trim() };
+                    else
+                        pathAndParams = new string[] { runValueData.Trim() };
+                    parameters = pathAndParams != null ? (pathAndParams.Length > 1 ? pathAndParams?[1] : string.Empty) : string.Empty;
+                    fileAndPath = pathAndParams != null ? pathAndParams?[0] : string.Empty;
+                }
+                FileInfo fi = File.Exists(fileAndPath) ? new(fileAndPath) : null;
                 StartupItem startupItem = new();
                 startupItem.ID = m_StartupItems.Count + 1;
                 startupItem.RegistryKey = regKeyRun.Name;
                 startupItem.GroupIndex = regRoot == Constants.REG_ROOT.HKCU ? 0 : 1;
-                startupItem.Folder = fi == null ? string.Empty : fi.Directory.FullName;
-                startupItem.Executable = fi == null ? string.Empty : fi.Name;
+                if (fi is null)
+                {                    
+                    if (fileAndPath.Contains('\\'))
+                    {
+                        startupItem.Folder = fileAndPath[..fileAndPath.LastIndexOf('\\')];
+                        startupItem.File = fileAndPath[(fileAndPath.LastIndexOf('\\') + 1)..];
+                    } 
+                    else if (fileAndPath.Contains('/'))
+                    {
+                        startupItem.Folder = fileAndPath[..fileAndPath.LastIndexOf('/')];
+                        startupItem.File = fileAndPath[(fileAndPath.LastIndexOf('/') + 1)..];
+                    }
+                    else
+                    {
+                        startupItem.File = fileAndPath;
+                        startupItem.Folder = string.Empty;
+                    }
+                }
+                else
+                {
+                    startupItem.File = fi.Name;
+                    startupItem.Folder = fi.Directory.FullName;
+                }
+                startupItem.StartedWithRunDLL = isWindowsRunDll;
                 startupItem.Kind = kind;
                 startupItem.ValueName = runValueName;
                 startupItem.ValueData = runValueData;
@@ -571,7 +662,7 @@ Write-Host $v";
                         startupItem.Enabled = flag != 3;
                     }
                 }
-                FillFileDetails(exeAndPath, ref startupItem);
+                FillFileDetails(fileAndPath, ref startupItem);
                 startupItem.Type = StartupItem.TYPE.REGISTRY;
                 m_StartupItems.Add(startupItem);
             }
@@ -587,9 +678,11 @@ Write-Host $v";
                 {
                     Group = listViewStartupItems.Groups[startupItem.GroupIndex],
                     Tag = Convert.ToString(startupItem.ID),
-                    Text = startupItem.Name
+                    Text = string.IsNullOrEmpty(startupItem.FileDescription) ? startupItem.ProductName : startupItem.FileDescription
                 };
-                string[] row = { startupItem.Publisher, startupItem.Executable, startupItem.Parameters,
+                string publisherAndCompany = string.IsNullOrWhiteSpace(startupItem.CompanyName) || startupItem.CompanyName == startupItem.Publisher ?
+                    $"{startupItem.Publisher}" : $"{startupItem.CompanyName} ({startupItem.Publisher})";
+                string[] row = { publisherAndCompany, startupItem.File, startupItem.Parameters,
                     startupItem.PartOfOS ? " YES " : " NO ", startupItem.Enabled ? "Enabled" : "Disabled",
                     startupItem.Type.ToString() };
                 listViewItem.SubItems.AddRange(row);
@@ -609,7 +702,7 @@ Write-Host $v";
         private static void FillFileDetails(string fileName, ref StartupItem startupItem)
         {
             startupItem.Publisher = Constants.UNKNOWN;
-            startupItem.Name = startupItem.ValueName;
+            startupItem.ProductName = startupItem.ValueName;
             if (!File.Exists(fileName))
             {
                 return;
@@ -625,17 +718,17 @@ Write-Host $v";
             FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(fileName);
             var productName = fileVersionInfo.ProductName;
 
-            if (!string.IsNullOrEmpty(productName) && productName == @"Microsoft® Windows® Operating System")
+            if (!string.IsNullOrEmpty(productName) && productName == Constants.WINDOWS_OS_PRODUCT_NAME)
             {
                 startupItem.PartOfOS = true;
             }
             if (!string.IsNullOrEmpty(productName) && !startupItem.PartOfOS)
             {
-                startupItem.Name = productName;
+                startupItem.ProductName = productName;
             }
-            else if (!string.IsNullOrEmpty(fileVersionInfo.FileDescription))
+            if (!string.IsNullOrEmpty(fileVersionInfo.FileDescription))
             {
-                startupItem.Name = fileVersionInfo.FileDescription;
+                startupItem.FileDescription = fileVersionInfo.FileDescription;
             }
             startupItem.ProductVersion = fileVersionInfo.ProductVersion;
             startupItem.FileVersion = fileVersionInfo.FileVersion;
@@ -643,6 +736,7 @@ Write-Host $v";
             {
                 startupItem.Publisher = string.IsNullOrEmpty(fileVersionInfo.CompanyName) ? Constants.UNKNOWN : fileVersionInfo.CompanyName;
             }
+            startupItem.CompanyName = string.IsNullOrWhiteSpace(fileVersionInfo.CompanyName) ? startupItem.Publisher : fileVersionInfo.CompanyName;
             FileInfo fi = new(fileName);
             if (fi != null)
             {

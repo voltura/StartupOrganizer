@@ -44,7 +44,7 @@ namespace StartupOrganizer
         private void Add_Click(object sender, EventArgs e)
         {
             m_StartupItem.Enabled = rbtnEnabled.Checked;
-            m_StartupItem.Executable = Path.GetFileName(txtFileName.Text);
+            m_StartupItem.File = Path.GetFileName(txtFileName.Text);
             m_StartupItem.Folder = Path.GetDirectoryName(txtFileName.Text);
             m_StartupItem.Type = rbtnFolderCurrentUser.Checked || rbtnFolderMachine.Checked ? StartupItem.TYPE.FOLDER : rbtnRegistryHKCU.Checked || rbtnRegistryHKLM.Checked ? StartupItem.TYPE.REGISTRY : StartupItem.TYPE.UWP;
             if (rbtnRegistryHKCU.Checked)

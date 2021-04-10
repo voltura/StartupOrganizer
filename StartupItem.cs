@@ -13,10 +13,22 @@ namespace StartupOrganizer
         public string ValueName { get; set; }
         public RegistryValueKind Kind { get; set; }
         public string ValueData { get; set; }
-        public string Executable { get; set; }
+        public string File { get; set; }
+        public bool StartedWithRunDLL { get; set; }
         public string Folder { get; set; }
+        public string FullPath { 
+            get 
+            {
+                return System.IO.Path.Combine(Folder, File);
+            } 
+            private set 
+            { 
+            } 
+        }
         public string Publisher { get; set; }
-        public string Name { get; set; }
+        public string CompanyName { get; set; }
+        public string ProductName { get; set; }
+        public string FileDescription { get; set; }
         public string Parameters { get; set; }
         public string ProductVersion { get; set; }
         public string FileVersion { get; set; }
@@ -85,10 +97,10 @@ namespace StartupOrganizer
                 ValueName.GetHashCode() ^
                 Kind.GetHashCode() ^
                 ValueData.GetHashCode() ^
-                Executable.GetHashCode() ^
+                File.GetHashCode() ^
                 Folder.GetHashCode() ^
                 Publisher.GetHashCode() ^
-                Name.GetHashCode() ^
+                ProductName.GetHashCode() ^
                 Parameters.GetHashCode() ^
                 ProductVersion.GetHashCode() ^
                 FileVersion.GetHashCode() ^
@@ -97,7 +109,9 @@ namespace StartupOrganizer
                 LinkName.GetHashCode() ^
                 LinkFolder.GetHashCode() ^
                 Type.GetHashCode() ^
-                State.GetHashCode();
+                State.GetHashCode() ^
+                FileDescription.GetHashCode() ^
+                StartedWithRunDLL.GetHashCode();
         }
     }
 }
