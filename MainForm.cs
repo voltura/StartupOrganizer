@@ -12,63 +12,6 @@ using System.Windows.Forms;
 
 #endregion Using statements
 
-#region Notes
-
-//Computer\HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Run
-//Computer\HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce
-//Computer\HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run
-//Computer\HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce
-//Scheduled Tasks that is set to run at startup
-//Services that are set to automatic
-//C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp
-//%ProgramData%\Microsoft\Windows\Start Menu\Programs\Startup 
-//%USERPROFILE%\AppData\Roaming\Microsoft\Windows\Start Menu
-//users start menu startup folders
-
-// Enabled|disabled info - how to read?
-//Computer\HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run
-//Computer\HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder
-//Computer\HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder
-/*HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run
-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run
-Programs unique to the user are in the HKEY_LOCAL_CURRENT_USER whereas programs installed for all users are under HKEY_LOCAL_MACHINE.
-
-which binary value would we use for each option?
-
-Depends on the first binary of the value: 0000 0000B, the least significant bit is turn on(0)/off(1). and the 5th is the switch enable(0)/disable(1) bit, for example: set xxxx 1xxxB for the first binary, the switch in windows setting will be:
-
-
-However, we usually set the first binary bit to 0x02 (enable) / 0x03 (disable).
-
- UWP apps 
-
- Computer\HKEY_CURRENT_USER\SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\Microsoft.YourPhone_8wekyb3d8bbwe\YourPhone\State 0 default disabled, 2 enabled 1 disabled
-UserEnabledStartupOnce 1
-
-
-https://stackoverflow.com/questions/41160159/get-list-of-installed-windows-apps
-
-https://stackoverflow.com/questions/56265062/programmatically-get-list-of-installed-application-executables-windows10-c
-
-
-powershell
-get-StartApps
-
-parse all ending with !App
-
-navigate to 
-Computer\HKEY_CURRENT_USER\SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\
- <index of last space> . remove !App _add_ \ and first part until tab or multiple space, replace space with ''.
-
-set state 
-State 0 default disabled, 2 enabled 1 disabled
-and 
-UserEnabledStartupOnce 1
-
- */
-
-#endregion Notes
-
 namespace StartupOrganizer
 {
     public partial class MainForm : Form
@@ -131,6 +74,28 @@ Please stand by...");
             if (!UserConfirmedPerformOperation())
             {
                 e.Cancel = true;
+            }
+        }
+
+        private void ContextMenuStrip_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+            switch (e.ClickedItem.Tag)
+            {
+                case "Details":
+                    ShowDetails();
+                    break;
+                case "Delete":
+                    DeleteStartupItems();
+                    break;
+                case "Enable":
+                    EnableStartupItems();
+                    break;
+                case "Disable":
+                    DisableStartupItems();
+                    break;
+                case "Copy":
+                    CopyItemDetailsToClipboard();
+                    break;
             }
         }
 
@@ -900,27 +865,5 @@ Write-Host $v";
         }
 
         #endregion Private methods
-
-        private void ContextMenuStrip_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
-        {
-            switch (e.ClickedItem.Tag)
-            {
-                case "Details":
-                    ShowDetails();
-                    break;
-                case "Delete":
-                    DeleteStartupItems();
-                    break;
-                case "Enable":
-                    EnableStartupItems();
-                    break;
-                case "Disable":
-                    DisableStartupItems();
-                    break;
-                case "Copy":
-                    CopyItemDetailsToClipboard();
-                    break;
-            }
-        }
     }
 }
