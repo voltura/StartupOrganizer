@@ -17,14 +17,15 @@ namespace StartupOrganizer
         public string File { get; set; }
         public bool StartedWithRunDLL { get; set; }
         public string Folder { get; set; }
-        public string FullPath { 
-            get 
+        public string FullPath
+        {
+            get
             {
                 return System.IO.Path.Combine(Folder ?? string.Empty, File ?? string.Empty);
-            } 
-            private set 
-            { 
-            } 
+            }
+            private set
+            {
+            }
         }
         public string Publisher { get; set; }
         public string CompanyName { get; set; }
@@ -64,7 +65,7 @@ namespace StartupOrganizer
 
         public int CompareTo(object obj)
         {
-            return ID.CompareTo(((StartupItem) obj).ID);
+            return ID.CompareTo(((StartupItem)obj).ID);
         }
 
         public bool Equals(StartupItem other)
@@ -84,7 +85,7 @@ namespace StartupOrganizer
 
         public override bool Equals(object obj)
         {
-            if (obj == null || GetType() != obj.GetType())
+            if (obj is null || GetType() != obj.GetType())
                 return false;
 
             var si2 = (StartupItem)obj;

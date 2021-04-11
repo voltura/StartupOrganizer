@@ -46,8 +46,8 @@ namespace StartupOrganizer
             m_StartupItem.Enabled = rbtnEnabled.Checked;
             m_StartupItem.File = Path.GetFileName(txtFileName.Text);
             m_StartupItem.Folder = Path.GetDirectoryName(txtFileName.Text);
-            m_StartupItem.Type = rbtnFolderCurrentUser.Checked || rbtnFolderMachine.Checked ? 
-                StartupItem.TYPE.FOLDER : rbtnRegistryHKCU.Checked || rbtnRegistryHKLM.Checked ? 
+            m_StartupItem.Type = rbtnFolderCurrentUser.Checked || rbtnFolderMachine.Checked ?
+                StartupItem.TYPE.FOLDER : rbtnRegistryHKCU.Checked || rbtnRegistryHKLM.Checked ?
                 StartupItem.TYPE.REGISTRY : StartupItem.TYPE.UWP;
             if (rbtnRegistryHKCU.Checked || rbtnFolderCurrentUser.Checked)
                 m_StartupItem.RegRoot = Constants.REG_ROOT.HKCU;
@@ -61,7 +61,8 @@ namespace StartupOrganizer
                     Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                     @"Microsoft\Windows\Start Menu\Programs\Startup");
                 m_StartupItem.LinkFolder = usersAppDataStartMenuFolder;
-            } else if (rbtnFolderMachine.Checked)
+            }
+            else if (rbtnFolderMachine.Checked)
             {
                 //%ProgramData%\Microsoft\Windows\Start Menu\Programs\Startup 
                 string systemAppDataStartMenuFolder = Path.Combine(
