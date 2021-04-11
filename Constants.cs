@@ -18,9 +18,16 @@
         internal const string APPROVED_STARTUP_FOLDER_SUBKEY_REG = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder";
         internal const string WINDOWS_OS_PRODUCT_NAME = @"Microsoft® Windows® Operating System";
 
+        public enum STATUS
+        {
+            ENABLED = 0x02, 
+            DISABLED = 0x03
+        }
+
         public enum REG_ROOT
         {
-            HKLM, HKCU
+            HKLM, 
+            HKCU
         }
 
         public enum FILE_TYPE

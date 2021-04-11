@@ -7,10 +7,61 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 #endregion Using statements
+
+#region Notes
+
+// Registry
+//Computer\HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Run
+//Computer\HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Run32
+//Computer\HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce
+//Computer\HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run
+//Computer\HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run32
+//Computer\HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce
+
+// Folder
+//%ProgramData%\Microsoft\Windows\Start Menu\Programs\Startup 
+//%USERPROFILE%\AppData\Roaming\Microsoft\Windows\Start Menu
+
+//Scheduled Tasks that is set to run at startup
+//Services that are set to automatic
+
+//users start menu startup folders
+
+// Enabled|disabled info
+//Computer\HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run
+//Computer\HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run
+//Computer\HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder
+//Computer\HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder
+
+//Depends on the first binary of the value: 0000 0000B, the least significant bit is turn on(0)/off(1). and the 5th is the switch enable(0)/disable(1) bit, for example: set xxxx 1xxxB for the first binary, the switch in windows setting will be:
+//However, we usually set the first binary bit to 0x02 (enable) / 0x03 (disable).
+
+// UWP apps 
+
+//Computer\HKEY_CURRENT_USER\SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\
+//Example "Your Phone" sub structure: Microsoft.YourPhone_8wekyb3d8bbwe\YourPhone\
+//State=0 default disabled, 2 enabled, 1 disabled
+//UserEnabledStartupOnce 0|1
+
+//https://stackoverflow.com/questions/41160159/get-list-of-installed-windows-apps
+//https://stackoverflow.com/questions/56265062/programmatically-get-list-of-installed-application-executables-windows10-c
+
+//powershell
+//get-StartApps
+//parse all ending with !App
+
+//navigate to 
+//Computer\HKEY_CURRENT_USER\SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\
+// <index of last space> . remove !App _add_ \ and first part until tab or multiple space, replace space with ''.
+//set state 
+//State 0 default disabled, 2 enabled 1 disabled
+//and 
+//UserEnabledStartupOnce 1
+
+#endregion Notes
 
 namespace StartupOrganizer
 {
@@ -18,11 +69,16 @@ namespace StartupOrganizer
     {
         #region Private variables
 
-        private readonly List<StartupItem> m_StartupItems;
+        private readonly List<StartupItem> m_StartupItems = new();
         private readonly AddForm m_AddForm = new();
         private readonly LoadingForm m_LoadingForm = new();
+        private bool m_UnsavedChanges;
 
-        internal bool UnsavedChanges
+        #endregion Private variables
+
+        #region Private properties
+
+        private bool UnsavedChanges
         {
             get
             {
@@ -35,15 +91,12 @@ namespace StartupOrganizer
             }
         }
 
-        private bool m_UnsavedChanges;
-
-        #endregion Private variables
+        #endregion Private properties
 
         #region Constructor
 
         public MainForm()
         {
-            m_StartupItems = new List<StartupItem>();
             InitializeComponent();
         }
 
@@ -159,7 +212,8 @@ Please stand by...");
 
         private bool UserConfirmedPerformOperation()
         {
-            bool unsavedChanges = m_StartupItems.Contains(new StartupItem { State = StartupItem.MODIFIED_STATE.MODIFIED | StartupItem.MODIFIED_STATE.NEW });
+            bool unsavedChanges = m_StartupItems.Exists(x => x.State == StartupItem.MODIFIED_STATE.MODIFIED) ||
+                m_StartupItems.Exists(x => x.State == StartupItem.MODIFIED_STATE.NEW);
             if (unsavedChanges && DialogResult.No == MessageBox.Show(this, "Unsaved changes will be lost", "Continue?", MessageBoxButtons.YesNo)) return false;
             return true;
         }
@@ -217,6 +271,14 @@ START regedit.exe";
             {
                 StartupItem itemToAdd = m_AddForm.StartupItemToAdd;
                 FillFileDetails(itemToAdd.FullPath, ref itemToAdd);
+                bool alreadyExist = m_StartupItems.Exists(x => x.FullPath == itemToAdd.FullPath) && 
+                    m_StartupItems.Exists(x => x.Parameters == itemToAdd.Parameters);
+                itemToAdd.ID = m_StartupItems.Count + 1;
+                if (alreadyExist)
+                {
+                    MessageBox.Show(this, "A startup item with same file path and parameters already exist. Modify existing instead.", "Item not added", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
                 m_StartupItems.Add(itemToAdd);
                 UnsavedChanges = true;
                 LoadStartupItems(true, @"Updating Startup Item list
@@ -227,47 +289,56 @@ Please stand by...");
         {
             foreach (StartupItem item in m_StartupItems)
             {
-                if (item.State == StartupItem.MODIFIED_STATE.MODIFIED || item.State == StartupItem.MODIFIED_STATE.NEW)
+                if (item.State != StartupItem.MODIFIED_STATE.MODIFIED &&
+                    item.State != StartupItem.MODIFIED_STATE.NEW)
                 {
-                    switch (item.Type)
-                    {
-                        case StartupItem.TYPE.FOLDER:
-                            SaveStartupItemFolder(item);
-                            break;
-                        case StartupItem.TYPE.REGISTRY:
-                            SaveStartupItemRegistry(item);
-                            break;
-                        case StartupItem.TYPE.UWP:
-                            SaveStartupItemUwp();
-                            break;
-                    }
+                    continue;
+                }
+                switch (item.Type)
+                {
+                    case StartupItem.TYPE.FOLDER:
+                        SaveStartupItemFolder(item);
+                        break;
+                    case StartupItem.TYPE.REGISTRY:
+                        SaveStartupItemRegistry(item);
+                        break;
+                    case StartupItem.TYPE.UWP:
+                        SaveStartupItemUwp(item);
+                        break;
                 }
             }
             UnsavedChanges = false;
         }
 
-        private void SaveStartupItemUwp()
+        private void SaveStartupItemUwp(StartupItem item)
         {
             throw new NotImplementedException();
         }
 
-        private void SaveStartupItemFolder(StartupItem item)
+        private static void SaveStartupItemFolder(StartupItem item)
         {
-            throw new NotImplementedException();
+            // create a shortcut, place in startup folder
+            string shortcutFileName = Path.Combine(item.LinkFolder, item.LinkName);
+            Shortcut.Create(shortcutFileName, item.FullPath, item.Parameters, item.Folder, item.FileDescription, null);
+
+            // add to registry if enabled or not
+            using RegistryKey root = item.RegRoot == Constants.REG_ROOT.HKCU ? Registry.CurrentUser : Registry.LocalMachine;
+            using RegistryKey allowedRun = root.OpenSubKey(item.RegistryKey, RegistryKeyPermissionCheck.ReadWriteSubTree, System.Security.AccessControl.RegistryRights.FullControl);
+            allowedRun.SetValue(item.LinkName,
+                new byte[] { (byte)(item.Enabled ? Constants.STATUS.ENABLED : Constants.STATUS.DISABLED), 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
+                RegistryValueKind.Binary);
         }
 
         private static void SaveStartupItemRegistry(StartupItem item)
         {
             using RegistryKey root = item.RegRoot == Constants.REG_ROOT.HKCU ? Registry.CurrentUser : Registry.LocalMachine;
-            using RegistryKey hkcuRun = root.OpenSubKey(Constants.RUN_SUBKEY_REG, true);
-            hkcuRun.SetValue(item.ProductName, item.ValueData);
-            if (!item.Enabled)
-            {
-                using RegistryKey allowedRun = root.OpenSubKey(item.Folder.Contains(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86)) ? Constants.APPROVED_RUN_SUBKEY_REG32 : Constants.APPROVED_RUN_SUBKEY_REG, true);
-                allowedRun.SetValue(item.ProductName,
-                    new byte[] { 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
-                    RegistryValueKind.Binary);
-            }
+            using RegistryKey run = root.OpenSubKey(Constants.RUN_SUBKEY_REG, true);
+            run.SetValue(item.ProductName, item.ValueData);
+            using RegistryKey allowedRun = root.OpenSubKey(item.Folder.Contains(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86)) ? 
+                Constants.APPROVED_RUN_SUBKEY_REG32 : Constants.APPROVED_RUN_SUBKEY_REG, RegistryKeyPermissionCheck.ReadWriteSubTree, System.Security.AccessControl.RegistryRights.FullControl);
+            allowedRun.SetValue(item.ProductName,
+                new byte[] { (byte)(item.Enabled ? Constants.STATUS.ENABLED : Constants.STATUS.DISABLED), 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
+                RegistryValueKind.Binary);
         }
 
         private void LoadStartupItemsFromStartupFolders()
@@ -447,9 +518,9 @@ Write-Host $v";
                     FillFileDetails(file, ref startupItem);
                 }
                 // check if enabled or disabled
-                using RegistryKey regKeyApprovedRun = group == 0 ?
-                    Registry.CurrentUser.OpenSubKey(Constants.CURRENT_USER_APPROVED_STARTUP_FOLDER_REG.Replace(@"HKEY_CURRENT_USER\", string.Empty)) :
-                    Registry.LocalMachine.OpenSubKey(Constants.LOCAL_MACHINE_APPROVED_STARTUP_FOLDER_REG.Replace(@"HKEY_LOCAL_MACHINE\", string.Empty));
+                startupItem.RegRoot = group == 0 ? Constants.REG_ROOT.HKCU : Constants.REG_ROOT.HKLM;
+                using RegistryKey root = startupItem.RegRoot == Constants.REG_ROOT.HKCU ? Registry.CurrentUser : Registry.LocalMachine;
+                using RegistryKey regKeyApprovedRun = root.OpenSubKey(Constants.APPROVED_STARTUP_FOLDER_SUBKEY_REG);
                 if (regKeyApprovedRun != null && !string.IsNullOrEmpty(startupItem.ValueName))
                 {
                     byte[] binaryData = (byte[])regKeyApprovedRun.GetValue(startupItem.ValueName);
@@ -457,6 +528,9 @@ Write-Host $v";
                     {
                         byte flag = binaryData[0];
                         startupItem.Enabled = flag != 3;
+                        startupItem.BinaryValueData = binaryData;
+                        startupItem.Kind = RegistryValueKind.Binary;
+                        startupItem.RegistryKey = Constants.APPROVED_STARTUP_FOLDER_SUBKEY_REG;
                     }
                 }
                 startupItem.Type = StartupItem.TYPE.FOLDER;

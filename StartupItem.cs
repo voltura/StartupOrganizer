@@ -13,13 +13,14 @@ namespace StartupOrganizer
         public string ValueName { get; set; }
         public RegistryValueKind Kind { get; set; }
         public string ValueData { get; set; }
+        public byte[] BinaryValueData { get; set; }
         public string File { get; set; }
         public bool StartedWithRunDLL { get; set; }
         public string Folder { get; set; }
         public string FullPath { 
             get 
             {
-                return System.IO.Path.Combine(Folder, File);
+                return System.IO.Path.Combine(Folder ?? string.Empty, File ?? string.Empty);
             } 
             private set 
             { 
@@ -63,7 +64,7 @@ namespace StartupOrganizer
 
         public int CompareTo(object obj)
         {
-            return ID.CompareTo(obj);
+            return ID.CompareTo(((StartupItem) obj).ID);
         }
 
         public bool Equals(StartupItem other)
@@ -78,7 +79,7 @@ namespace StartupOrganizer
 
         public static bool operator !=(StartupItem si1, StartupItem si2)
         {
-            return !(si1 == si2);
+            return !si1.Equals(si2);
         }
 
         public override bool Equals(object obj)
@@ -87,7 +88,7 @@ namespace StartupOrganizer
                 return false;
 
             var si2 = (StartupItem)obj;
-            return (ID == si2.ID);
+            return ID == si2.ID;
         }
 
         public override int GetHashCode()
@@ -113,7 +114,8 @@ namespace StartupOrganizer
                 State.GetHashCode() ^
                 FileDescription.GetHashCode() ^
                 StartedWithRunDLL.GetHashCode() ^
-                FileType.GetHashCode();
+                FileType.GetHashCode() ^
+                BinaryValueData.GetHashCode();
         }
     }
 }
