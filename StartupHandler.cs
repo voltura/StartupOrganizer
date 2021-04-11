@@ -161,8 +161,9 @@ START regedit.exe";
 
         public void SaveStartupItems()
         {
-            foreach (StartupItem item in StartupItems)
+            for (int i = 0; i < StartupItems.Count; i++)
             {
+                StartupItem item = StartupItems[i];
                 if (item.State != StartupItem.MODIFIED_STATE.MODIFIED &&
                     item.State != StartupItem.MODIFIED_STATE.NEW) //TODO: Add delete feature
                 {
@@ -183,29 +184,6 @@ START regedit.exe";
             }
         }
 
-        public void PopulateListView(System.Windows.Forms.ListView listViewStartupItems)
-        {
-            listViewStartupItems.BeginUpdate();
-            listViewStartupItems.Items.Clear();
-            foreach (StartupItem startupItem in StartupItems)
-            {
-                System.Windows.Forms.ListViewItem listViewItem = new()
-                {
-                    Group = listViewStartupItems.Groups[startupItem.GroupIndex],
-                    Tag = Convert.ToString(startupItem.ID),
-                    Text = string.IsNullOrEmpty(startupItem.FileDescription) ? startupItem.ProductName : startupItem.FileDescription
-                };
-                string publisherAndCompany = string.IsNullOrWhiteSpace(startupItem.CompanyName) || startupItem.CompanyName == startupItem.Publisher ?
-                    $"{startupItem.Publisher}" : $"{startupItem.CompanyName} ({startupItem.Publisher})";
-                string[] row = { publisherAndCompany, startupItem.File, string.IsNullOrEmpty(startupItem.Parameters) ? "" : startupItem.Parameters,
-                    startupItem.PartOfOS ? " YES " : " NO ", startupItem.Enabled ? "Enabled" : "Disabled",
-                    startupItem.Type.ToString() };
-                listViewItem.SubItems.AddRange(row);
-                listViewStartupItems.Items.Add(listViewItem);
-            }
-            listViewStartupItems.EndUpdate();
-        }
-
         public void LoadStartupItems()
         {
             CleanLoadedStartupItems();
@@ -217,14 +195,24 @@ START regedit.exe";
             GetStartupItemsFromUWP();
         }
 
-        public void EnableStartupItems()
+        public bool SetStatusForStartupItems(List<int> ids, Constants.STATUS status)
         {
-            throw new NotImplementedException();
-        }
-
-        public void DisableStartupItems()
-        {
-            throw new NotImplementedException();
+            if (ids == null || ids.Count == 0) return false;
+            bool updateOfStatusHasBeenPerformed = false;
+            foreach (int id in ids)
+            {
+                if (StartupItems.Exists(x => x.ID == id))
+                {
+                    int itemIndex = StartupItems.FindIndex(x => x.ID == id);
+                    if (StartupItems[itemIndex].Enabled && status == Constants.STATUS.ENABLED) continue;
+                    if (StartupItems[itemIndex].Enabled == false && status == Constants.STATUS.DISABLED) continue;
+                    StartupItem item = StartupItems[itemIndex];
+                    StartupItems[itemIndex].Enabled = status == Constants.STATUS.ENABLED;
+                    StartupItems[itemIndex].State = StartupItem.MODIFIED_STATE.MODIFIED;
+                    updateOfStatusHasBeenPerformed = true;
+                }
+            }
+            return updateOfStatusHasBeenPerformed;
         }
 
         public void CopyItemDetailsToClipboard()
@@ -521,7 +509,8 @@ START regedit.exe";
                 if (k is null) k = Registry.CurrentUser.OpenSubKey(regKeyUwpApp + "StartupId", RegistryKeyPermissionCheck.ReadWriteSubTree, System.Security.AccessControl.RegistryRights.FullControl);
             }
             if (k is null) return;
-            k.SetValue("State", new byte[] { (byte)(item.Enabled ? Constants.STATUS.ENABLED : Constants.STATUS.DISABLED), 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }, RegistryValueKind.Binary);
+            k.SetValue("State", new byte[] { (byte)(item.Enabled ? Constants.STATUS.ENABLED : Constants.STATUS.DISABLED), 
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }, RegistryValueKind.Binary);
         }
 
         private static void FillFileDetails(string fileName, ref StartupItem startupItem)
@@ -590,8 +579,10 @@ START regedit.exe";
             using RegistryKey allowedRun = root.OpenSubKey(item.Folder.Contains(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86)) ?
                 Constants.APPROVED_RUN_SUBKEY_REG32 : Constants.APPROVED_RUN_SUBKEY_REG, RegistryKeyPermissionCheck.ReadWriteSubTree, System.Security.AccessControl.RegistryRights.FullControl);
             allowedRun.SetValue(item.ProductName,
-                new byte[] { (byte)(item.Enabled ? Constants.STATUS.ENABLED : Constants.STATUS.DISABLED), 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
+                new byte[] { (byte)(item.Enabled ? Constants.STATUS.ENABLED : Constants.STATUS.DISABLED), 
+                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
                 RegistryValueKind.Binary);
+            item.State = StartupItem.MODIFIED_STATE.SAVED;
         }
 
         private static List<UwpApp> GetUwpApps()

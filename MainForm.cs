@@ -1,7 +1,9 @@
 ﻿#region Using statements
 
 using System;
+using System.Collections.Generic;
 using System.Windows.Forms;
+using System.Globalization;
 
 #endregion Using statements
 
@@ -64,11 +66,11 @@ Please stand by...");
                 case "Delete":
                     m_StartupHandler.DeleteStartupItems();
                     break;
-                case "Enable":
-                    m_StartupHandler.EnableStartupItems();
+                case "Enable":                    
+                    SetSelectedItemsStatus(Constants.STATUS.ENABLED);
                     break;
                 case "Disable":
-                    m_StartupHandler.DisableStartupItems();
+                    SetSelectedItemsStatus(Constants.STATUS.DISABLED);
                     break;
                 case "Copy":
                     m_StartupHandler.CopyItemDetailsToClipboard();
@@ -84,6 +86,7 @@ Please stand by...");
         private void Save_Click(object sender, EventArgs e)
         {
             m_StartupHandler.SaveStartupItems();
+            btnSave.Enabled = m_StartupHandler.UnsavedChanges;
         }
 
         private void Add_Click(object sender, EventArgs e)
@@ -115,12 +118,12 @@ Please stand by...");
 
         private void Enable_Click(object sender, EventArgs e)
         {
-            m_StartupHandler.EnableStartupItems();
+            SetSelectedItemsStatus(Constants.STATUS.ENABLED);
         }
 
         private void Disable_Click(object sender, EventArgs e)
         {
-            m_StartupHandler.DisableStartupItems();
+            SetSelectedItemsStatus(Constants.STATUS.DISABLED);
         }
 
         private void Copy_Click(object sender, EventArgs e)
@@ -136,6 +139,29 @@ Please stand by...");
         #endregion Private Events
 
         #region Private methods
+
+        private void SetSelectedItemsStatus(Constants.STATUS status)
+        {
+            // get list of selected items
+            List<int> ids = GetSelectedIDs();
+            // enable|disable ids
+            bool updated = m_StartupHandler.SetStatusForStartupItems(ids, status);
+            // update list view to reflect changes
+            if (updated)
+            {
+                LoadStartupItems(true, "Updating items...");
+            }
+        }
+
+        private List<int> GetSelectedIDs()
+        {
+            List<int> ids = new();
+            foreach (ListViewItem item in listViewStartupItems.SelectedItems)
+            {
+                ids.Add(Convert.ToInt32(item.Tag));
+            }
+            return ids;
+        }
 
         private bool UserConfirmedPerformOperation()
         {
@@ -156,7 +182,7 @@ Please stand by...");
             StartupItem itemToAdd = m_AddForm.StartupItemToAdd;
             if (m_StartupHandler.ItemAlreadyExist(itemToAdd))
             {
-                MessageBox.Show(this, "A startup item with same file path and parameters already exist. Modify existing instead.", "Item not added", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(this, "A startup item with same file path and parameters already exist. Please modify existing instead.", "Item not added", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             m_StartupHandler.AddStartupItem(itemToAdd);
@@ -166,10 +192,39 @@ Please stand by...");
 
         private void PopulateListView()
         {
-            m_StartupHandler.PopulateListView(listViewStartupItems);
+            PopulateListViewFromStartupItemsList(m_StartupHandler.StartupItems);
             MakeListViewColumnsFitContent();
             MakeFormWithFitListViewWidth();
             btnSave.Enabled = m_StartupHandler.UnsavedChanges;
+        }
+
+        private void PopulateListViewFromStartupItemsList(List<StartupItem> startupItems)
+        {
+            listViewStartupItems.BeginUpdate();
+            listViewStartupItems.Items.Clear();
+            foreach (StartupItem startupItem in startupItems)
+            {
+                ListViewItem listViewItem = new()
+                {
+                    Group = listViewStartupItems.Groups[startupItem.GroupIndex],
+                    Tag = Convert.ToString(startupItem.ID),
+                    Text = string.IsNullOrEmpty(startupItem.FileDescription) ? startupItem.ProductName : startupItem.FileDescription
+                };
+                string publisherAndCompany = string.IsNullOrWhiteSpace(startupItem.CompanyName) || startupItem.CompanyName == startupItem.Publisher ?
+                    $"{startupItem.Publisher}" : $"{startupItem.CompanyName} ({startupItem.Publisher})";
+                string[] row = {
+                    publisherAndCompany,
+                    startupItem.File,
+                    string.IsNullOrEmpty(startupItem.Parameters) ? "" : startupItem.Parameters,
+                    startupItem.PartOfOS ? " Yes " : " No ",
+                    startupItem.Enabled ? "Enabled" : "Disabled",
+                    startupItem.Type.ToString().ToTitleCase(),
+                    startupItem.State.ToString().ToTitleCase()
+                };
+                listViewItem.SubItems.AddRange(row);
+                listViewStartupItems.Items.Add(listViewItem);
+            }
+            listViewStartupItems.EndUpdate();
         }
 
         private void MakeFormWithFitListViewWidth()
@@ -193,13 +248,13 @@ Please stand by...");
             throw new NotImplementedException();
         }
 
-        private void LoadStartupItems(bool userAddedItem = false, string loadingText = "")
+        private void LoadStartupItems(bool userAddedOrModifiedItem = false, string loadingText = "")
         {
             try
             {
                 m_LoadingForm.SetText(this, loadingText);
                 m_LoadingForm.Show(this);
-                if (!userAddedItem)
+                if (!userAddedOrModifiedItem)
                 {
                     m_StartupHandler.LoadStartupItems();
                 }

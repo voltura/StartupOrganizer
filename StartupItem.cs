@@ -3,7 +3,7 @@ using System;
 
 namespace StartupOrganizer
 {
-    internal struct StartupItem : IComparable, IEquatable<StartupItem>
+    internal class StartupItem : IComparable, IEquatable<StartupItem>
     {
         #region Public properties
 
@@ -55,7 +55,8 @@ namespace StartupOrganizer
             UNTOUCHED,
             MODIFIED,
             NEW,
-            DELETED
+            DELETED,
+            SAVED
         }
         public enum TYPE
         {

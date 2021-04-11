@@ -40,6 +40,7 @@ namespace StartupOrganizer
             this.columnHeaderOS = new System.Windows.Forms.ColumnHeader();
             this.columnHeaderStatus = new System.Windows.Forms.ColumnHeader();
             this.columnHeaderType = new System.Windows.Forms.ColumnHeader();
+            this.columnHeaderState = new System.Windows.Forms.ColumnHeader();
             this.contextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.toolStripMenuItemDetails = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItemEnable = new System.Windows.Forms.ToolStripMenuItem();
@@ -75,7 +76,8 @@ namespace StartupOrganizer
             this.columnHeaderParam,
             this.columnHeaderOS,
             this.columnHeaderStatus,
-            this.columnHeaderType});
+            this.columnHeaderType,
+            this.columnHeaderState});
             this.listViewStartupItems.ContextMenuStrip = this.contextMenuStrip;
             this.listViewStartupItems.FullRowSelect = true;
             this.listViewStartupItems.GridLines = true;
@@ -125,7 +127,7 @@ namespace StartupOrganizer
             // 
             // columnHeaderOS
             // 
-            this.columnHeaderOS.Text = "OS?";
+            this.columnHeaderOS.Text = "OS";
             this.columnHeaderOS.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
             // columnHeaderStatus
@@ -137,6 +139,11 @@ namespace StartupOrganizer
             // 
             this.columnHeaderType.Text = "Type";
             this.columnHeaderType.Width = 120;
+            // 
+            // columnHeaderState
+            // 
+            this.columnHeaderState.Text = "State";
+            this.columnHeaderState.Width = 120;
             // 
             // contextMenuStrip
             // 
@@ -399,6 +406,7 @@ namespace StartupOrganizer
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemDisable;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemDelete;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemCopy;
+        private System.Windows.Forms.ColumnHeader columnHeaderState;
     }
 }
 
