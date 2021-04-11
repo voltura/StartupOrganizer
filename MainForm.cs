@@ -169,6 +169,7 @@ Please stand by...");
             m_StartupHandler.PopulateListView(listViewStartupItems);
             MakeListViewColumnsFitContent();
             MakeFormWithFitListViewWidth();
+            btnSave.Enabled = m_StartupHandler.UnsavedChanges;
         }
 
         private void MakeFormWithFitListViewWidth()

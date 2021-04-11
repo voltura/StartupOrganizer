@@ -164,7 +164,7 @@ START regedit.exe";
             foreach (StartupItem item in StartupItems)
             {
                 if (item.State != StartupItem.MODIFIED_STATE.MODIFIED &&
-                    item.State != StartupItem.MODIFIED_STATE.NEW)
+                    item.State != StartupItem.MODIFIED_STATE.NEW) //TODO: Add delete feature
                 {
                     continue;
                 }
@@ -236,11 +236,6 @@ START regedit.exe";
 
         #region Private methods
 
-        private void SaveStartupItemUwp(StartupItem item)
-        {
-            throw new NotImplementedException();
-        }
-
         private void LoadStartupItemsFromStartupFolders()
         {
             string userStartupFolder = Environment.GetFolderPath(Environment.SpecialFolder.Startup);
@@ -252,11 +247,11 @@ START regedit.exe";
         private void GetStartupItemsFromUWP()
         {
             List<UwpApp> uwpApps = GetUwpApps();
-            GetUwpAppsFromRegistry(ref uwpApps, Constants.REG_ROOT.HKCU);
-            GetUwpAppsFromRegistry(ref uwpApps, Constants.REG_ROOT.HKLM);
+            GetUwpAppsFromRegistry(uwpApps, Constants.REG_ROOT.HKCU);
+            GetUwpAppsFromRegistry(uwpApps, Constants.REG_ROOT.HKLM);
         }
 
-        private void GetUwpAppsFromRegistry(ref List<UwpApp> uwpApps, Constants.REG_ROOT root)
+        private void GetUwpAppsFromRegistry(List<UwpApp> uwpApps, Constants.REG_ROOT root)
         {
             foreach (UwpApp app in uwpApps)
             {
@@ -286,7 +281,8 @@ START regedit.exe";
                     Enabled = !(state == "0" || state == "1"),
                     Parameters = string.Empty,
                     ProductName = app.Name,
-                    Type = StartupItem.TYPE.UWP
+                    Type = StartupItem.TYPE.UWP,
+                    UwpAppDetails = app
                 };
                 StartupItems.Add(startupItem);
             }
@@ -499,6 +495,34 @@ START regedit.exe";
         #endregion Private methods
 
         #region Private static methods and functions
+
+        private static void SaveStartupItemUwp(StartupItem item)
+        {
+            if (item.State == StartupItem.MODIFIED_STATE.DELETED) throw new NotImplementedException();
+            //Example:
+            //Computer\HKEY_CURRENT_USER\SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\
+            //Microsoft.549981C3F5F10_8wekyb3d8bbwe
+            //\CortanaStartupId
+
+            // set ENABLED or DISABLED (only works for current user...)
+            string regKeyUwpApp = @$"{Constants.UWP_APP_SUBKEY_REG}\{item.UwpAppDetails.ID}\{item.UwpAppDetails.NoSpacesName}";
+            RegistryKey k = null;
+            if (item.RegRoot == Constants.REG_ROOT.HKCU)
+            {
+                k = Registry.CurrentUser.OpenSubKey(regKeyUwpApp, RegistryKeyPermissionCheck.ReadWriteSubTree, System.Security.AccessControl.RegistryRights.FullControl);
+                if (k is null) k = Registry.CurrentUser.OpenSubKey(regKeyUwpApp + "StartupId", RegistryKeyPermissionCheck.ReadWriteSubTree, System.Security.AccessControl.RegistryRights.FullControl);
+            }
+            if (k is null)
+            {
+                // NOTE: Will not really get anything here...
+                k = Registry.LocalMachine.OpenSubKey(regKeyUwpApp, RegistryKeyPermissionCheck.ReadWriteSubTree, System.Security.AccessControl.RegistryRights.FullControl);
+                if (k is null) k = Registry.LocalMachine.OpenSubKey(regKeyUwpApp + "StartupId", RegistryKeyPermissionCheck.ReadWriteSubTree, System.Security.AccessControl.RegistryRights.FullControl);
+                if (k is null) k = Registry.CurrentUser.OpenSubKey(regKeyUwpApp, RegistryKeyPermissionCheck.ReadWriteSubTree, System.Security.AccessControl.RegistryRights.FullControl);
+                if (k is null) k = Registry.CurrentUser.OpenSubKey(regKeyUwpApp + "StartupId", RegistryKeyPermissionCheck.ReadWriteSubTree, System.Security.AccessControl.RegistryRights.FullControl);
+            }
+            if (k is null) return;
+            k.SetValue("State", new byte[] { (byte)(item.Enabled ? Constants.STATUS.ENABLED : Constants.STATUS.DISABLED), 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }, RegistryValueKind.Binary);
+        }
 
         private static void FillFileDetails(string fileName, ref StartupItem startupItem)
         {

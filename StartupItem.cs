@@ -44,15 +44,18 @@ namespace StartupOrganizer
         public Constants.REG_ROOT RegRoot { get; set; }
         public bool X86 { get; set; }
 
-        #endregion Public properties
+        public UwpApp UwpAppDetails { get; set; }
 
-        #region Public enums
+    #endregion Public properties
 
-        public enum MODIFIED_STATE
+    #region Public enums
+
+    public enum MODIFIED_STATE
         {
             UNTOUCHED,
             MODIFIED,
-            NEW
+            NEW,
+            DELETED
         }
         public enum TYPE
         {
@@ -116,7 +119,8 @@ namespace StartupOrganizer
                 FileDescription.GetHashCode() ^
                 StartedWithRunDLL.GetHashCode() ^
                 FileType.GetHashCode() ^
-                BinaryValueData.GetHashCode();
+                BinaryValueData.GetHashCode() ^
+                UwpAppDetails.GetHashCode();
         }
     }
 }
